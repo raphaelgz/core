@@ -597,14 +597,14 @@ static HB_SIZE s_fileRead( PHB_FILE pFile, void * buffer, HB_SIZE nSize,
                            HB_MAXINT nTimeout )
 {
    HB_SYMBOL_UNUSED( nTimeout );
-   return hb_fsRead( pFile->hFile, buffer, nSize );
+   return hb_fsReadLarge( pFile->hFile, buffer, nSize );
 }
 
 static HB_SIZE s_fileWrite( PHB_FILE pFile, const void * buffer, HB_SIZE nSize,
                             HB_MAXINT nTimeout )
 {
    HB_SYMBOL_UNUSED( nTimeout );
-   return hb_fsWrite( pFile->hFile, buffer, nSize );
+   return hb_fsWriteLarge( pFile->hFile, buffer, nSize );
 }
 
 static HB_SIZE s_fileReadAt( PHB_FILE pFile, void * buffer, HB_SIZE nSize,
@@ -795,7 +795,7 @@ static HB_FOFFSET s_fileposSeek( PHB_FILE pFilePos, HB_FOFFSET nOffset,
                                  HB_USHORT uiFlags )
 {
    if( uiFlags & FS_END )
-      nOffset += pFilePos->pFuncs->Size( _PHB_FILE );
+      nOffset += pFilePos->pFuncs->Size( pFilePos );
    else if( uiFlags & FS_RELATIVE )
       nOffset += _PHB_FILEPOS->seek_pos;
    /* else FS_SET */
@@ -818,7 +818,7 @@ static HB_FOFFSET s_fileposSize( PHB_FILE pFilePos )
 
 static HB_BOOL s_fileposEof( PHB_FILE pFilePos )
 {
-   return _PHB_FILEPOS->seek_pos >= _PHB_FILE->pFuncs->Size( _PHB_FILE );
+   return _PHB_FILEPOS->seek_pos >= pFilePos->pFuncs->Size( pFilePos );
 }
 
 static void s_fileposFlush( PHB_FILE pFilePos, HB_BOOL fDirty )

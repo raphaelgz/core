@@ -320,7 +320,6 @@ static void open_handle( PHB_SET_STRUCT pSet, const char * file_name,
 
    /* QUESTION: What sharing mode does Clipper use ? [vszakats] */
 
-   handle = NULL;
    do
    {
       if( bPipe )
@@ -332,7 +331,7 @@ static void open_handle( PHB_SET_STRUCT pSet, const char * file_name,
          handle = hb_fileExtOpen( szFileName,
                                   hb_stackSetStruct()->HB_SET_DEFEXTENSIONS ? def_ext : NULL,
                                   FO_READWRITE | FO_READWRITE | FXO_SHARELOCK |
-                                  ( bAppend ? 0 : FXO_TRUNCATE ) |
+                                  ( bAppend ? FXO_APPEND : FXO_TRUNCATE ) |
                                   ( szDevice ? 0 : FXO_DEFAULTS ),
                                   NULL, pError );
 
