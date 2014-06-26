@@ -211,9 +211,9 @@ typedef struct
    /* used font informations */
    XFontStruct * xfs;
    char * szFontName;
-   char * szFontWeight;
    char * szFontEncoding;
    char * szFontSel;
+   int fontWeight;
    int fontHeight;
    int fontWidth;
    /* if font has bad metric then try to fix it and display only single
@@ -2418,12 +2418,12 @@ static void hb_gt_xwc_AddCharToInputQueue( PXWND_DEF wnd, int keyCode )
 {
    if( wnd->keyBuffNO > 0 && HB_INKEY_ISMOUSEPOS( keyCode ) )
    {
-      int index = wnd->keyBuffPointer - 1;
-      if( index < 0 )
-         index += XWC_CHAR_QUEUE_SIZE;
-      if( HB_INKEY_ISMOUSEPOS( wnd->KeyBuff[ index ] ) )
+      int keyBuffPtr = wnd->keyBuffPointer - 1;
+      if( keyBuffPtr < 0 )
+         keyBuffPtr += XWC_CHAR_QUEUE_SIZE;
+      if( HB_INKEY_ISMOUSEPOS( wnd->KeyBuff[ keyBuffPtr ] ) )
       {
-         wnd->KeyBuff[ index ] = keyCode;
+         wnd->KeyBuff[ keyBuffPtr ] = keyCode;
          return;
       }
    }
@@ -2444,10 +2444,10 @@ static HB_BOOL hb_gt_xwc_GetCharFromInputQueue( PXWND_DEF wnd, int * keyCode )
    *keyCode = 0;
    if( wnd->keyBuffNO > 0 )
    {
-      int index = wnd->keyBuffPointer - wnd->keyBuffNO;
-      if( index < 0 )
-         index += XWC_CHAR_QUEUE_SIZE;
-      *keyCode = wnd->KeyBuff[ index ];
+      int keyBuffPtr = wnd->keyBuffPointer - wnd->keyBuffNO;
+      if( keyBuffPtr < 0 )
+         keyBuffPtr += XWC_CHAR_QUEUE_SIZE;
+      *keyCode = wnd->KeyBuff[ keyBuffPtr ];
       wnd->keyBuffNO--;
       return HB_TRUE;
    }
@@ -3650,7 +3650,7 @@ static HB_U32 hb_gt_xwc_HashCurrChar( HB_BYTE attr, HB_BYTE color, HB_USHORT chr
 
 static void hb_gt_xwc_RepaintChar( PXWND_DEF wnd, int colStart, int rowStart, int colStop, int rowStop )
 {
-   HB_USHORT irow, icol, index, startCol = 0, len, basex, basey, nsize;
+   HB_USHORT irow, icol, scridx, startCol = 0, len, basex, basey, nsize;
    HB_BYTE oldColor = 0, color, attr;
    HB_USHORT usCh16, usChBuf[ XWC_MAX_COLS ];
    HB_U32 u32Curr = 0xFFFFFFFF;
@@ -3673,7 +3673,7 @@ static void hb_gt_xwc_RepaintChar( PXWND_DEF wnd, int colStart, int rowStart, in
    for( irow = rowStart; irow <= rowStop; irow++ )
    {
       icol = colStart;
-      index = icol +  irow * wnd->cols;
+      scridx = icol +  irow * wnd->cols;
       len = 0;
       /* attribute may change mid line...
        * so buffer up text with same attrib, and output it
@@ -3704,12 +3704,12 @@ static void hb_gt_xwc_RepaintChar( PXWND_DEF wnd, int colStart, int rowStart, in
             color = ( color << 4 ) | ( color >> 4 );
          }
          if( len > 0 && ( chTrans->type != CH_CHAR ||
-                          color != oldColor || u32Curr == wnd->pCurrScr[ index ] ) )
+                          color != oldColor || u32Curr == wnd->pCurrScr[ scridx ] ) )
          {
             hb_gt_xwc_DrawString( wnd, startCol, irow, oldColor, usChBuf, len );
             len = 0;
          }
-         if( wnd->pCurrScr[ index ] != u32Curr )
+         if( wnd->pCurrScr[ scridx ] != u32Curr )
          {
             switch( chTrans->type )
             {
@@ -3834,10 +3834,10 @@ static void hb_gt_xwc_RepaintChar( PXWND_DEF wnd, int colStart, int rowStart, in
                   break;
 
             }
-            wnd->pCurrScr[ index ] = u32Curr;
+            wnd->pCurrScr[ scridx ] = u32Curr;
          }
          icol++;
-         index++;
+         scridx++;
       }
       if( len > 0 )
       {
@@ -4229,19 +4229,33 @@ static void hb_gt_xwc_ProcessMessages( PXWND_DEF wnd, HB_BOOL fSync )
 }
 
 static HB_BOOL hb_gt_xwc_SetFont( PXWND_DEF wnd, const char * fontFace,
-                                  const char * weight, int size,
-                                  const char * encoding )
+                                  int weight, int size, const char * encoding )
 {
    char fontString[ 250 ];
    XFontStruct * xfs;
 
-   if( weight )
+   if( weight || size )
+   {
+      const char * szWeight;
+
+      switch( weight )
+      {
+         case HB_GTI_FONTW_BOLD:
+            szWeight = "bold";
+            break;
+         case HB_GTI_FONTW_THIN:
+         case HB_GTI_FONTW_NORMAL:
+         default:
+            szWeight = "medium";
+            break;
+      }
 /*
       "-*-%s-%s-r-normal-*-%d-*-*-*-*-*-%s"
  */
       hb_snprintf( fontString, sizeof( fontString ),
                    "-*-%s-%s-r-*-*-%d-*-*-*-*-*-%s",
-                   fontFace, weight, size, encoding == NULL ? "*-*" : encoding );
+                   fontFace, szWeight, size, encoding == NULL ? "*-*" : encoding );
+   }
    else
       hb_strncpy( fontString, fontFace, sizeof( fontString ) - 1 );
 
@@ -4453,8 +4467,8 @@ static PXWND_DEF hb_gt_xwc_CreateWndDef( PHB_GT pGT )
    /* Font parameters */
    wnd->fontHeight = XWC_DEFAULT_FONT_HEIGHT;
    wnd->fontWidth = XWC_DEFAULT_FONT_WIDTH;
+   wnd->fontWeight = XWC_DEFAULT_FONT_WEIGHT;
    wnd->szFontName = hb_strdup( XWC_DEFAULT_FONT_NAME );
-   wnd->szFontWeight = hb_strdup( XWC_DEFAULT_FONT_WEIGHT );
    wnd->szFontEncoding = hb_strdup( XWC_DEFAULT_FONT_ENCODING );
    /* set GTXWC extension for chosen font */
    wnd->fFixMetric = XWC_DEFAULT_FONT_FIXMETRIC;
@@ -4598,8 +4612,6 @@ static void hb_gt_xwc_DestroyWndDef( PXWND_DEF wnd )
       hb_xfree( wnd->szTitle );
    if( wnd->szFontName )
       hb_xfree( wnd->szFontName );
-   if( wnd->szFontWeight )
-      hb_xfree( wnd->szFontWeight );
    if( wnd->szFontEncoding )
       hb_xfree( wnd->szFontEncoding );
    if( wnd->szFontSel )
@@ -4661,7 +4673,7 @@ static void hb_gt_xwc_CreateWindow( PXWND_DEF wnd )
    /* load the standard font */
    if( ! wnd->szFontSel )
    {
-      if( ! hb_gt_xwc_SetFont( wnd, wnd->szFontName, wnd->szFontWeight, wnd->fontHeight, wnd->szFontEncoding ) )
+      if( ! hb_gt_xwc_SetFont( wnd, wnd->szFontName, wnd->fontWeight, wnd->fontHeight, wnd->szFontEncoding ) )
       {
          if( ! hb_gt_xwc_SetFont( wnd, XWC_DEFAULT_FONT_NAME, XWC_DEFAULT_FONT_WEIGHT, XWC_DEFAULT_FONT_HEIGHT, XWC_DEFAULT_FONT_ENCODING ) )
          {
@@ -5160,6 +5172,21 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
             wnd->fontWidth = iVal;
          break;
 
+      case HB_GTI_FONTWEIGHT:
+         pInfo->pResult = hb_itemPutNI( pInfo->pResult, wnd->fontWeight );
+         if( hb_itemType( pInfo->pNewVal ) & HB_IT_NUMERIC )
+         {
+            iVal = hb_itemGetNI( pInfo->pNewVal );
+            switch( iVal )
+            {
+               case HB_GTI_FONTW_THIN:
+               case HB_GTI_FONTW_NORMAL:
+               case HB_GTI_FONTW_BOLD:
+                  wnd->fontWeight = iVal;
+            }
+         }
+         break;
+
       case HB_GTI_FONTNAME:
          pInfo->pResult = hb_itemPutC( pInfo->pResult, wnd->szFontName );
          if( hb_itemType( pInfo->pNewVal ) & HB_IT_STRING ) /* TODO */
@@ -5175,7 +5202,7 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
          if( hb_itemType( pInfo->pNewVal ) & HB_IT_STRING )
          {
             HB_XWC_XLIB_LOCK();
-            if( hb_gt_xwc_SetFont( wnd, hb_itemGetCPtr( pInfo->pNewVal ), NULL, 0, NULL ) &&
+            if( hb_gt_xwc_SetFont( wnd, hb_itemGetCPtr( pInfo->pNewVal ), 0, 0, NULL ) &&
                 wnd->fInit )
                hb_gt_xwc_CreateWindow( wnd );
             HB_XWC_XLIB_UNLOCK();
@@ -5393,6 +5420,8 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
          if( wnd->window )
          {
             XWindowAttributes wndAttr;
+
+            HB_XWC_XLIB_LOCK();
             if( XGetWindowAttributes( wnd->dpy, wnd->window, &wndAttr ) )
             {
                Window wndChild;
@@ -5404,6 +5433,7 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
                   y = wndAttr.y;
                }
             }
+            HB_XWC_XLIB_UNLOCK();
          }
 
          if( ! pInfo->pResult )
@@ -5411,7 +5441,11 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
          hb_arrayNew( pInfo->pResult, 2 );
 
          if( wnd->fInit )
+         {
+            HB_XWC_XLIB_LOCK();
             hb_gt_xwc_UpdateWindowCords( wnd, &x, &y );
+            HB_XWC_XLIB_UNLOCK();
+         }
 
          if( iType == HB_GTI_SETPOS_ROWCOL )
          {
@@ -5445,7 +5479,9 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
          }
          if( wnd->fInit )
          {
+            HB_XWC_XLIB_LOCK();
             XMoveWindow( wnd->dpy, wnd->window, x, y );
+            HB_XWC_XLIB_UNLOCK();
          }
          else
          {
@@ -5468,10 +5504,15 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
                   {
                      wnd->colors[ iVal ].value = iColor;
                      wnd->colors[ iVal ].set = HB_FALSE;
-                     if( wnd->fInit && hb_gt_xwc_setPalette( wnd ) )
+                     if( wnd->fInit )
                      {
-                        memset( wnd->pCurrScr, 0xFF, wnd->cols * wnd->rows * sizeof( HB_U32 ) );
-                        hb_gt_xwc_InvalidateChar( wnd, 0, 0, wnd->cols - 1, wnd->rows - 1 );
+                        HB_XWC_XLIB_LOCK();
+                        if( hb_gt_xwc_setPalette( wnd ) )
+                        {
+                           memset( wnd->pCurrScr, 0xFF, wnd->cols * wnd->rows * sizeof( HB_U32 ) );
+                           hb_gt_xwc_InvalidateChar( wnd, 0, 0, wnd->cols - 1, wnd->rows - 1 );
+                        }
+                        HB_XWC_XLIB_UNLOCK();
                      }
                   }
                }
@@ -5496,10 +5537,15 @@ static HB_BOOL hb_gt_xwc_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
                      wnd->colors[ iVal ].set = HB_FALSE;
                   }
                }
-               if( wnd->fInit && hb_gt_xwc_setPalette( wnd ) )
+               if( wnd->fInit )
                {
-                  memset( wnd->pCurrScr, 0xFF, wnd->cols * wnd->rows * sizeof( HB_U32 ) );
-                  hb_gt_xwc_InvalidateChar( wnd, 0, 0, wnd->cols - 1, wnd->rows - 1 );
+                  HB_XWC_XLIB_LOCK();
+                  if( hb_gt_xwc_setPalette( wnd ) )
+                  {
+                     memset( wnd->pCurrScr, 0xFF, wnd->cols * wnd->rows * sizeof( HB_U32 ) );
+                     hb_gt_xwc_InvalidateChar( wnd, 0, 0, wnd->cols - 1, wnd->rows - 1 );
+                  }
+                  HB_XWC_XLIB_UNLOCK();
                }
             }
          }
