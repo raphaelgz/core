@@ -16,10 +16,10 @@ rem - Run this from vanilla official source tree only.
 
 echo ! Self: %0
 
-if "%HB_VS%" == "" set HB_VS=21
-if "%HB_VL%" == "" set HB_VL=210
-if "%HB_VM%" == "" set HB_VM=2.1
-if "%HB_VF%" == "" set HB_VF=2.1.0rc2
+if "%HB_VS%" == "" set HB_VS=30
+if "%HB_VL%" == "" set HB_VL=300
+if "%HB_VM%" == "" set HB_VM=3.0
+if "%HB_VF%" == "" set HB_VF=3.0.0
 if "%HB_RT%" == "" set HB_RT=C:\hb\
 
 set HB_DR=hb%HB_VS%\
@@ -57,19 +57,19 @@ xcopy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\*.dll 
 xcopy /y       %~dp0..\..\pkg\wce\mingwarm\harbour-%HB_VF%-wce-mingwarm\bin\*.dll         %HB_ABSROOT%bin\
 
 rem ; Create special implibs for Borland (requires BCC in PATH)
-for %%a in ( %HB_ABSROOT%bin\*-%HB_VS%.dll ) do "%HB_DIR_BCC_IMPLIB%implib.exe" -c -a %HB_ABSROOT%lib\win\bcc\%%~na-bcc.lib %%a
-
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\harbour.exe     %HB_ABSROOT%bin\harbour-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbformat.exe    %HB_ABSROOT%bin\hbformat-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbi18n.exe      %HB_ABSROOT%bin\hbi18n-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbmk2.exe       %HB_ABSROOT%bin\hbmk2-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbnetio.exe     %HB_ABSROOT%bin\hbnetio-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbpp.exe        %HB_ABSROOT%bin\hbpp-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbrun.exe       %HB_ABSROOT%bin\hbrun-x64.exe
- copy /y       %~dp0..\..\pkg\win\mingw64\harbour-%HB_VF%-win-mingw64\bin\hbtest.exe      %HB_ABSROOT%bin\hbtest-x64.exe
-
-xcopy /y       "%HB_DIR_UPX%upx.exe"                                                      %HB_ABSROOT%bin\
- copy /y       "%HB_DIR_UPX%LICENSE"                                                      %HB_ABSROOT%bin\upx_LICENSE.txt
+rem   NOTE: Using intermediate .def files, because direct .dll to .lib conversion
+rem         is buggy in BCC55 and BCC58 (no other versions tested), leaving off
+rem         leading underscore from certain ("random") symbols, resulting in
+rem         unresolved externals, when trying to use. [vszakats]
+for %%a in ( %HB_ABSROOT%bin\*-%HB_VS%.dll ) do (
+   "%HB_DIR_BCC_IMPLIB%impdef.exe" -a "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.defraw" "%%a"
+   echo s/LIBRARY     %%~na.DLL/LIBRARY     "%%~na.dll"/Ig> _hbtemp.sed
+   sed -f _hbtemp.sed < "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.defraw" > "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.def"
+   "%HB_DIR_BCC_IMPLIB%implib.exe" -c -a "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.lib" "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.def"
+   del "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.defraw"
+   del "%HB_ABSROOT%lib\win\bcc\%%~na-bcc.def"
+)
+del _hbtemp.sed
 
 xcopy /y /s /e "%HB_DIR_MINGW%"                                                           %HB_ABSROOT%comp\mingw\
 rem del %HB_ABSROOT%comp\mingw\tdm-mingw-1.908.0-4.4.1-2.exe
