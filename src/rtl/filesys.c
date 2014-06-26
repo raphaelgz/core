@@ -719,8 +719,8 @@ HB_FHANDLE hb_fsPOpen( const char * pszFileName, const char * pszMode )
                   iMaxFD = 1024;
                for( hNullHandle = 3; hNullHandle < iMaxFD; ++hNullHandle )
                   hb_fsClose( hNullHandle );
-               setuid( getuid() );
-               setgid( getgid() );
+               ( void ) setuid( getuid() );
+               ( void ) setgid( getgid() );
 #if defined( __WATCOMC__ )
                HB_FAILURE_RETRY( iResult, execv( "/bin/sh", argv ) );
 #else
@@ -821,8 +821,13 @@ int hb_fsIsPipeOrSock( HB_FHANDLE hPipeHandle )
 
 #if defined( HB_OS_UNIX )
 {
+#  if defined( HB_USE_LARGEFILE64 )
+   struct stat64 statbuf;
+   if( fstat64( hPipeHandle, &statbuf ) == 0 )
+#  else
    struct stat statbuf;
    if( fstat( hPipeHandle, &statbuf ) == 0 )
+#  endif
    {
       if( S_ISFIFO( statbuf.st_mode ) || S_ISSOCK( statbuf.st_mode ) )
          return 1;
@@ -1337,12 +1342,11 @@ HB_BOOL hb_fsGetFileTime( const char * pszFileName, long * plJulian, long * plMi
 #if defined( HB_OS_WIN )
    {
       HB_FHANDLE hFile = hb_fsOpen( pszFileName, FO_READ | FO_SHARED );
+      FILETIME ft, local_ft;
+      SYSTEMTIME st;
 
       if( hFile != FS_ERROR )
       {
-         FILETIME ft, local_ft;
-         SYSTEMTIME st;
-
          if( GetFileTime( DosToWinHandle( hFile ), NULL, NULL, &ft ) &&
              FileTimeToLocalFileTime( &ft, &local_ft ) &&
              FileTimeToSystemTime( &local_ft, &st ) )
@@ -1355,20 +1359,48 @@ HB_BOOL hb_fsGetFileTime( const char * pszFileName, long * plJulian, long * plMi
          hb_fsSetIOError( fResult, 0 );
          hb_fsClose( hFile );
       }
+      else
+      {
+         WIN32_FIND_DATA findFileData;
+         HANDLE hFindFile;
+         LPCTSTR lpFileName;
+         LPTSTR lpFree;
+
+         lpFileName = HB_FSNAMECONV( pszFileName, &lpFree );
+         hFindFile = FindFirstFile( lpFileName, &findFileData );
+         if( lpFree )
+            hb_xfree( lpFree );
+
+         if( hFindFile != INVALID_HANDLE_VALUE )
+         {
+            if( FileTimeToLocalFileTime( &findFileData.ftLastWriteTime, &local_ft ) &&
+                FileTimeToSystemTime( &local_ft, &st ) )
+            {
+               *plJulian = hb_dateEncode( st.wYear, st.wMonth, st.wDay );
+               *plMillisec = hb_timeEncode( st.wHour, st.wMinute, st.wSecond, st.wMilliseconds );
+
+               fResult = HB_TRUE;
+            }
+            hb_fsSetIOError( fResult, 0 );
+            FindClose( hFindFile );
+         }
+      }
    }
 #elif defined( HB_OS_UNIX ) || defined( HB_OS_OS2 ) || defined( HB_OS_DOS ) || defined( __GNUC__ )
    {
-      struct stat sStat;
       char * pszFree;
-
-      pszFileName = hb_fsNameConv( pszFileName, &pszFree );
-
-      if( stat( pszFileName, &sStat ) == 0 )
+#  if defined( HB_USE_LARGEFILE64 )
+      struct stat64 statbuf;
+      if( stat64( hb_fsNameConv( pszFileName, &pszFree ), &statbuf ) == 0 )
+#  else
+      struct stat statbuf;
+      if( stat( hb_fsNameConv( pszFileName, &pszFree ), &statbuf ) == 0 )
+#  endif
       {
          time_t ftime;
          struct tm ft;
 
-         ftime = sStat.st_mtime;
+         ftime = statbuf.st_mtime;
 #  if defined( HB_HAS_LOCALTIME_R )
          localtime_r( &ftime, &ft );
 #  else
@@ -1379,7 +1411,7 @@ HB_BOOL hb_fsGetFileTime( const char * pszFileName, long * plJulian, long * plMi
 #if defined( HB_OS_LINUX ) && ( defined( _BSD_SOURCE ) || defined( _SVID_SOURCE ) ) && \
     defined( __GLIBC__ ) && defined( __GLIBC_MINOR__ ) && \
            ( __GLIBC__ > 2 || ( __GLIBC__ == 2 && __GLIBC_MINOR__ >= 6 ) )
-         *plMillisec = hb_timeEncode( ft.tm_hour, ft.tm_min, ft.tm_sec, sStat.st_mtim.tv_nsec / 1000000 );
+         *plMillisec = hb_timeEncode( ft.tm_hour, ft.tm_min, ft.tm_sec, statbuf.st_mtim.tv_nsec / 1000000 );
 #else
          *plMillisec = hb_timeEncode( ft.tm_hour, ft.tm_min, ft.tm_sec, 0 );
 #endif
@@ -1470,11 +1502,15 @@ HB_BOOL hb_fsGetAttr( const char * pszFileName, HB_FATTR * pulAttr )
       }
 #  elif defined( HB_OS_UNIX )
       {
-         struct stat sStat;
-
-         if( stat( pszFileName, &sStat ) == 0 )
+#     if defined( HB_USE_LARGEFILE64 )
+         struct stat64 statbuf;
+         if( stat64( pszFileName, &statbuf ) == 0 )
+#     else
+         struct stat statbuf;
+         if( stat( pszFileName, &statbuf ) == 0 )
+#     endif
          {
-            *pulAttr = hb_fsAttrFromRaw( sStat.st_mode );
+            *pulAttr = hb_fsAttrFromRaw( statbuf.st_mode );
             fResult = HB_TRUE;
          }
          hb_fsSetIOError( fResult, 0 );
@@ -1602,7 +1638,7 @@ HB_BOOL hb_fsSetFileTime( const char * pszFileName, long lJulian, long lMillisec
 
       pszFileName = hb_fsNameConv( pszFileName, &pszFree );
 
-      if( lJulian <= 0 && lMillisec )
+      if( lJulian <= 0 && lMillisec < 0 )
       {
 #  if defined( HB_OS_LINUX ) && ! defined( __WATCOMC__ )
          fResult = utimes( pszFileName, NULL ) == 0;
@@ -1613,7 +1649,6 @@ HB_BOOL hb_fsSetFileTime( const char * pszFileName, long lJulian, long lMillisec
       else
       {
          struct tm new_value;
-         time_t tim;
 
          if( lJulian <= 0 || lMillisec < 0 )
          {
@@ -1641,12 +1676,8 @@ HB_BOOL hb_fsSetFileTime( const char * pszFileName, long lJulian, long lMillisec
             new_value.tm_min = iMinute;
             new_value.tm_sec = iSecond;
          }
-         tim = mktime( &new_value );
-#  if defined( HB_HAS_LOCALTIME_R )
-         gmtime_r( &tim, &new_value );
-#  else
-         new_value = *gmtime( &tim );
-#  endif
+         new_value.tm_isdst = 0;
+
 #  if defined( HB_OS_LINUX ) && ! defined( __WATCOMC__ )
          {
             struct timeval times[ 2 ];
@@ -2879,6 +2910,17 @@ HB_ULONG hb_fsSeek( HB_FHANDLE hFileHandle, HB_LONG lOffset, HB_USHORT uiFlags )
    {
       ulPos = lseek( hFileHandle, lOffset, nFlags );
       hb_fsSetIOError( ulPos != ( HB_ULONG ) -1, 0 );
+#  if defined( HB_OS_UNIX )
+      /* small trick to resolve problem with position reported for directories */
+      if( ulPos == LONG_MAX && lOffset == 0 && nFlags == SEEK_END )
+      {
+         /* we do not need to use fstat64() here on 32 bit platforms, [druzus] */
+         struct stat st;
+
+         if( fstat( hFileHandle, &st ) == 0 )
+            ulPos = st.st_size;
+      }
+#  endif
    }
 
    if( ulPos == ( HB_ULONG ) -1 )
@@ -2946,6 +2988,16 @@ HB_FOFFSET hb_fsSeekLarge( HB_FHANDLE hFileHandle, HB_FOFFSET nOffset, HB_USHORT
       {
          nPos = lseek64( hFileHandle, nOffset, nFlags );
          hb_fsSetIOError( nPos != ( HB_FOFFSET ) -1, 0 );
+#  if defined( HB_OS_UNIX )
+         /* small trick to resolve problem with position reported for directories */
+         if( nPos == LONG_MAX && nOffset == 0 && nFlags == SEEK_END )
+         {
+            struct stat64 st;
+
+            if( fstat64( hFileHandle, &st ) == 0 )
+               nPos = st.st_size;
+         }
+#  endif
       }
 
       if( nPos == ( HB_FOFFSET ) -1 )

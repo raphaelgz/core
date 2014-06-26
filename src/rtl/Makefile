@@ -48,6 +48,7 @@ C_SOURCES := \
    errintlo.c \
    file.c \
    filebuf.c \
+   filebufd.c \
    filehb.c \
    filesys.c \
    fkmax.c \
@@ -119,6 +120,7 @@ C_SOURCES := \
    idle.c \
    inkey.c \
    inkeyapi.c \
+   iousr.c \
    is.c \
    isprint.c \
    itemseri.c \

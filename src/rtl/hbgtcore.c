@@ -160,6 +160,32 @@ static void hb_gt_def_Free( PHB_GT pGT )
    if( pGT == ( PHB_GT ) hb_stackGetGT() )
       hb_stackSetGT( NULL );
 
+   if( pGT->pNotifierBlock )
+   {
+      hb_itemRelease( pGT->pNotifierBlock );
+      pGT->pNotifierBlock = NULL;
+   }
+   if( pGT->pInkeyFilterBlock )
+   {
+      hb_itemRelease( pGT->pInkeyFilterBlock );
+      pGT->pInkeyFilterBlock = NULL;
+   }
+   if( pGT->pInkeyReadBlock )
+   {
+      hb_itemRelease( pGT->pInkeyReadBlock );
+      pGT->pInkeyReadBlock = NULL;
+   }
+   if( pGT->pCargo )
+   {
+      hb_itemRelease( pGT->pCargo );
+      pGT->pCargo = NULL;
+   }
+   if( pGT->pMutex )
+   {
+      hb_itemRelease( pGT->pMutex );
+      pGT->pMutex = NULL;
+   }
+
    if( pGT->screenBuffer )
       hb_xfree( pGT->screenBuffer );
    if( pGT->prevBuffer )
@@ -168,19 +194,6 @@ static void hb_gt_def_Free( PHB_GT pGT )
       hb_xfree( pGT->pLines );
    if( pGT->iColorCount > 0 )
       hb_xfree( pGT->pColor );
-
-   if( pGT->pNotifierBlock )
-      hb_itemRelease( pGT->pNotifierBlock );
-   if( pGT->pInkeyFilterBlock )
-      hb_itemRelease( pGT->pInkeyFilterBlock );
-   if( pGT->pInkeyReadBlock )
-      hb_itemRelease( pGT->pInkeyReadBlock );
-   if( pGT->pCargo )
-      hb_itemRelease( pGT->pCargo );
-
-   if( pGT->pMutex )
-      hb_itemRelease( pGT->pMutex );
-
    if( pGT->pFuncTable )
       hb_xfree( pGT->pFuncTable );
 
@@ -303,7 +316,7 @@ static void hb_gt_def_ColorSelect( PHB_GT pGT, int iColorIndex )
       pGT->iColorIndex = iColorIndex;
 }
 
-static int  hb_gt_def_GetColor( PHB_GT pGT )
+static int hb_gt_def_GetColor( PHB_GT pGT )
 {
    if( pGT->iColorCount )
       return pGT->pColor[ pGT->iColorIndex ];
@@ -329,7 +342,7 @@ static void hb_gt_def_GetColorData( PHB_GT pGT, int ** pColorsPtr, int * piColor
    }
 }
 
-static int  hb_gt_def_GetClearColor( PHB_GT pGT )
+static int hb_gt_def_GetClearColor( PHB_GT pGT )
 {
    return pGT->iClearColor;
 }
@@ -455,7 +468,7 @@ static const char * hb_gt_def_ColorDecode( const char * szColorString, int * piC
    return NULL;
 }
 
-static int  hb_gt_def_ColorNum( PHB_GT pGT, const char * szColorString )
+static int hb_gt_def_ColorNum( PHB_GT pGT, const char * szColorString )
 {
    int nColor;
 
@@ -588,7 +601,7 @@ static void hb_gt_def_ColorsToString( PHB_GT pGT, int * pColors, int iColorCount
 }
 
 
-static int  hb_gt_def_GetCursorStyle( PHB_GT pGT )
+static int hb_gt_def_GetCursorStyle( PHB_GT pGT )
 {
    return pGT->iCursorShape;
 }
@@ -1767,7 +1780,7 @@ static void hb_gt_def_SetBlock( PHB_ITEM * pItemPtr, PHB_GT_INFO pInfo )
          hb_itemRelease( *pItemPtr );
          *pItemPtr = NULL;
       }
-      if( hb_itemType( pInfo->pNewVal ) & HB_IT_BLOCK )
+      if( HB_IS_EVALITEM( pInfo->pNewVal ) )
       {
          *pItemPtr = hb_itemNew( pInfo->pNewVal );
          hb_gcUnlock( *pItemPtr );
@@ -3200,7 +3213,7 @@ typedef struct
    int iRight;
 } _HB_MOUSE_STORAGE;
 
-static int  hb_gt_def_mouseStorageSize( PHB_GT pGT )
+static int hb_gt_def_mouseStorageSize( PHB_GT pGT )
 {
    HB_SYMBOL_UNUSED( pGT );
 
@@ -3233,7 +3246,7 @@ static void hb_gt_def_mouseRestoreState( PHB_GT pGT, const void * pBuffer )
    HB_GTSELF_MOUSESETCURSOR( pGT, pStore->fVisible );
 }
 
-static int  hb_gt_def_mouseGetDoubleClickSpeed( PHB_GT pGT )
+static int hb_gt_def_mouseGetDoubleClickSpeed( PHB_GT pGT )
 {
    return pGT->iDoubleClickSpeed;
 }
@@ -3679,17 +3692,19 @@ static const char * hb_gt_FindDefault( void )
 
 static int hb_gt_FindEntry( const char * pszID )
 {
+   HB_BOOL fGt = hb_strnicmp( pszID, "gt", 2 ) == 0;
    int iPos;
 
-   for( iPos = 0; iPos < s_iGtCount; iPos++ )
+   for( iPos = -1; iPos < s_iGtCount; iPos++ )
    {
-      if( hb_stricmp( s_gtInit[ iPos ]->id, pszID ) == 0 ||
-          ( hb_strnicmp( pszID, "gt", 2 ) == 0 &&
-            hb_stricmp( s_gtInit[ iPos ]->id, pszID + 2 ) == 0 ) )
+      const char * id = iPos < 0 ? "nul" : s_gtInit[ iPos ]->id;
+
+      if( hb_stricmp( pszID, id ) == 0 ||
+          ( fGt && hb_stricmp( pszID + 2, id ) == 0 ) )
          return iPos;
    }
 
-   return -1;
+   return hb_stricmp( pszID + ( fGt ? 2 : 0 ), "null" ) == 0 ? -1 : -2;
 }
 
 void hb_gtSetDefault( const char * szGtName )
@@ -3700,7 +3715,7 @@ void hb_gtSetDefault( const char * szGtName )
 
 HB_BOOL hb_gtRegister( const HB_GT_INIT * gtInit )
 {
-   if( s_iGtCount < HB_GT_MAX_ && hb_gt_FindEntry( gtInit->id ) == -1 )
+   if( s_iGtCount < HB_GT_MAX_ && hb_gt_FindEntry( gtInit->id ) < -1 )
    {
       if( gtInit->pGtId )
          *gtInit->pGtId = s_iGtCount;
@@ -3716,7 +3731,9 @@ PHB_GT hb_gtLoad( const char * szGtName, PHB_GT pGT, PHB_GT_FUNCS pSuperTable )
 
    if( szGtName )
    {
-      if( hb_stricmp( szGtName, "nul" ) == 0 || hb_stricmp( szGtName, "null" ) == 0 )
+      iPos = hb_gt_FindEntry( szGtName );
+
+      if( iPos == -1 )
       {
          if( pGT || pSuperTable )
             hb_errInternal( 9996, "Harbour terminal (GT) initialization failure", NULL, NULL );
@@ -3728,10 +3745,7 @@ PHB_GT hb_gtLoad( const char * szGtName, PHB_GT pGT, PHB_GT_FUNCS pSuperTable )
          pGT->iUsed++;
          return pGT;
       }
-
-      iPos = hb_gt_FindEntry( szGtName );
-
-      if( iPos != -1 )
+      else if( iPos >= 0 )
       {
          HB_BOOL fNew = pGT == NULL;
 
@@ -3843,7 +3857,7 @@ HB_BOOL hb_gtReload( const char * szGtName,
 {
    HB_BOOL fResult = HB_FALSE;
 
-   if( szGtName && hb_gt_FindEntry( szGtName ) != -1 )
+   if( szGtName && hb_gt_FindEntry( szGtName ) >= -1 )
    {
       hb_gtRelease( NULL );
       hb_stackSetGT( hb_gtLoad( szGtName, NULL, NULL ) );
@@ -3860,7 +3874,7 @@ void * hb_gtCreate( const char * szGtName,
 {
    void * hCurrGT = hb_gtSwap( NULL );
 
-   if( szGtName && hb_gt_FindEntry( szGtName ) != -1 )
+   if( szGtName && hb_gt_FindEntry( szGtName ) >= -1 )
    {
       PHB_GT pGT = hb_gtLoad( szGtName, NULL, NULL );
       if( pGT )

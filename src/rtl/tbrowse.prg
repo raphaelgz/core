@@ -132,8 +132,9 @@ CREATE CLASS TBrowse
    VAR bGoTopBlock    AS BLOCK INIT {|| NIL }   // 12. Code block executed by TBrowse:goTop()
    VAR bGoBottomBlock AS BLOCK INIT {|| NIL }   // 13. Code block executed by TBrowse:goBottom()
 
-#ifdef HB_COMPAT_C53
    VAR dummy                   INIT ""          // 14. ??? In Clipper it's character variable with internal C level structure containing browse data
+
+#ifdef HB_COMPAT_C53
    VAR cBorder    AS CHARACTER                  // 15. character value defining characters drawn around object
    VAR cMessage                                 // 16. character string displayed on status bar
    VAR keys       AS ARRAY                      // 17. array with SetKey() method values
@@ -291,7 +292,9 @@ CREATE CLASS TBrowse
    METHOD dispFrames()                          // display TBrowse border, columns' headings, footings and separators
    METHOD dispRow( nRow )                       // display TBrowse data
 
+#ifndef HB_BRW_STATICMOUSE
    FRIEND FUNCTION _mBrwPos                     // helper function for MRow() and MCol() methods
+#endif
 
 ENDCLASS
 
@@ -1304,15 +1307,13 @@ METHOD doConfigure() CLASS TBrowse
       IF cColSep == NIL
          cColSep := ::cColSep
       ENDIF
-      cHeadSep := oCol:headSep
-      IF ! HB_ISSTRING( cHeadSep ) .OR. cHeadSep == ""
-         cHeadSep := ::cHeadSep
-         hb_default( @cHeadSep, "" )
+      cHeadSep := hb_defaultValue( oCol:headSep, "" )
+      IF cHeadSep == ""
+         cHeadSep := hb_defaultValue( ::cHeadSep, "" )
       ENDIF
-      cFootSep := oCol:footSep
-      IF ! HB_ISSTRING( cFootSep ) .OR. cFootSep == ""
-         cFootSep := ::cFootSep
-         hb_default( @cFootSep, "" )
+      cFootSep := hb_defaultValue( oCol:footSep, "" )
+      IF cFootSep == ""
+         cFootSep := hb_defaultValue( ::cFootSep, "" )
       ENDIF
       aCol := Array( _TBCI_SIZE )
       aCol[ _TBCI_COLOBJECT   ] := oCol
@@ -2648,11 +2649,11 @@ METHOD setKey( nKey, bBlock ) CLASS TBrowse
    ENDIF
 
    IF ( nPos := AScan( ::keys, {| x | x[ _TBC_SETKEY_KEY ] == nKey } ) ) == 0
-      IF HB_ISBLOCK( bBlock )
+      IF HB_ISEVALITEM( bBlock )
          AAdd( ::keys, { nKey, bBlock } )
       ENDIF
       bReturn := bBlock
-   ELSEIF HB_ISBLOCK( bBlock )
+   ELSEIF HB_ISEVALITEM( bBlock )
       ::keys[ nPos ][ _TBC_SETKEY_BLOCK ] := bBlock
       bReturn := bBlock
    ELSEIF PCount() == 1

@@ -4097,7 +4097,7 @@ HB_FUNC( __CLSINSTSUPER )
                hb_snprintf( szDesc, sizeof( szDesc ),
                             "Super class '%s' does not return an object",
                             pClassFuncSym->szName );
-               hb_errRT_BASE( EG_ARG, 3002, "Super class does not return an object", HB_ERR_FUNCNAME, 0 );
+               hb_errRT_BASE( EG_ARG, 3002, szDesc, HB_ERR_FUNCNAME, 0 );
             }
          }
       }
@@ -5115,7 +5115,7 @@ HB_FUNC( __GETMSGPRF ) /* profiler: returns a method called and consumed times *
    HB_STACK_TLS_PRELOAD
 #ifndef HB_NO_PROFILER
    HB_USHORT uiClass = ( HB_USHORT ) hb_parni( 1 );
-   char * cMsg = hb_parc( 2 );
+   const char * cMsg = hb_parc( 2 );
 
    hb_reta( 2 );
    if( uiClass && uiClass <= s_uiClasses && cMsg && *cMsg )

@@ -71,7 +71,7 @@ static const HB_GC_FUNCS s_gcFileFuncs =
    hb_gcDummyMark
 };
 
-static PHB_FILE hb_fileParam( int iParam )
+PHB_FILE hb_fileParam( int iParam )
 {
    PHB_FILE * fileHolder = ( PHB_FILE * ) hb_parptrGC( &s_gcFileFuncs, iParam );
 
@@ -80,6 +80,29 @@ static PHB_FILE hb_fileParam( int iParam )
 
    hb_errRT_BASE_SubstR( EG_ARG, 2021, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
    return NULL;
+}
+
+PHB_FILE hb_fileItemGet( PHB_ITEM pItem )
+{
+   PHB_FILE * fileHolder = ( PHB_FILE * ) hb_itemGetPtrGC( pItem, &s_gcFileFuncs );
+
+   return fileHolder ? *fileHolder : NULL;
+}
+
+PHB_ITEM hb_fileItemPut( PHB_ITEM pItem, PHB_FILE pFile )
+{
+   PHB_FILE * fileHolder = ( PHB_FILE * ) hb_gcAllocate( sizeof( PHB_FILE ),
+                                                         &s_gcFileFuncs );
+   * fileHolder = pFile;
+   return hb_itemPutPtrGC( pItem, fileHolder );
+}
+
+void hb_fileItemClear( PHB_ITEM pItem )
+{
+   PHB_FILE * fileHolder = ( PHB_FILE * ) hb_itemGetPtrGC( pItem, &s_gcFileFuncs );
+
+   if( fileHolder )
+      * fileHolder = NULL;
 }
 
 static PHB_FILE * hb_fileParamPtr( int iParam )
@@ -96,12 +119,7 @@ static PHB_FILE * hb_fileParamPtr( int iParam )
 static void hb_fileReturn( PHB_FILE pFile )
 {
    if( pFile )
-   {
-      PHB_FILE * fileHolder = ( PHB_FILE * ) hb_gcAllocate( sizeof( PHB_FILE ),
-                                                            &s_gcFileFuncs );
-      * fileHolder = pFile;
-      hb_retptrGC( fileHolder );
-   }
+      hb_fileItemPut( hb_param( -1, HB_IT_ANY ), pFile );
    else
       hb_ret();
 }
@@ -398,22 +416,43 @@ HB_FUNC( HB_VFOPEN )
 
    if( pszFile )
    {
+      char szName[ HB_PATH_MAX ];
+      HB_USHORT uiModeAttr = 0;
       PHB_FILE pFile;
+      int iMode;
+
+      iMode = hb_parnidef( 2, FO_READWRITE | FO_DENYNONE | FO_PRIVATE ) &
+              ( 0xFF | FO_CREAT | FO_TRUNC | FO_EXCL );
+
+      if( iMode & FO_CREAT )
+      {
+         if( iMode & FO_TRUNC )
+            uiModeAttr |= FXO_TRUNCATE;
+         else
+            uiModeAttr |= FXO_APPEND;
+         if( iMode & FO_EXCL )
+            uiModeAttr |= FXO_UNIQUE;
+      }
+      if( iMode & ( FO_EXCLUSIVE | FO_DENYWRITE | FO_DENYREAD | FO_DENYNONE ) )
+         uiModeAttr |= FXO_SHARELOCK;
+
+      uiModeAttr |= ( HB_USHORT ) ( iMode & 0xFF );
 
       if( HB_ISBYREF( 1 ) )
       {
-         char szName[ HB_PATH_MAX ];
 
          hb_strncpy( szName, pszFile, sizeof( szName ) - 1 );
-         pFile = hb_fileExtOpen( szName, NULL /* pDefExt */,
-                                 ( HB_USHORT ) ( hb_parnidef( 2, FO_READ | FO_COMPAT ) | FXO_COPYNAME ),
-                                 NULL /* pPaths */, NULL /* pError */ );
-         hb_storc( szName, 1 );
+         uiModeAttr |= FXO_COPYNAME;
+         pszFile = szName;
       }
       else
-         pFile = hb_fileExtOpen( pszFile, NULL /* pDefExt */,
-                                 ( HB_USHORT ) hb_parnidef( 2, FO_READ | FO_COMPAT ),
-                                 NULL /* pPaths */, NULL /* pError */ );
+         uiModeAttr &= ( HB_USHORT ) ~FXO_COPYNAME;
+
+      pFile = hb_fileExtOpen( pszFile, NULL /* pDefExt */, uiModeAttr,
+                              NULL /* pPaths */, NULL /* pError */ );
+
+      if( pszFile == szName )
+         hb_storc( szName, 1 );
 
       hb_fsSetFError( hb_fsError() );
       hb_fileReturn( pFile );
