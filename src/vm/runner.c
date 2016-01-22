@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Harbour Portable Object (.hrb) file runner
  *
  * Copyright 1999 Eddie Runia <eddie@runia.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 2002 Alexander Kresin <alex@belacy.belgorod.su>
  *    hb_hrbLoad()
@@ -423,8 +420,7 @@ static PHRB_BODY hb_hrbLoad( const char * szHrbBody, HB_SIZE nBodySize, HB_USHOR
 
       if( pHrbBody->ulFuncs )
       {
-         pDynFunc = ( PHB_DYNF ) hb_xgrab( pHrbBody->ulFuncs * sizeof( HB_DYNF ) );
-         memset( pDynFunc, 0, pHrbBody->ulFuncs * sizeof( HB_DYNF ) );
+         pDynFunc = ( PHB_DYNF ) hb_xgrabz( pHrbBody->ulFuncs * sizeof( HB_DYNF ) );
          pHrbBody->pDynFunc = pDynFunc;
 
          for( ul = 0; ul < pHrbBody->ulFuncs; ul++ )
@@ -603,20 +599,18 @@ static PHRB_BODY hb_hrbLoadFromFile( const char * szHrb, HB_USHORT usMode )
 
    if( pFile != NULL )
    {
-      HB_SIZE nBodySize = ( HB_SIZE ) hb_fileSize( pFile );
+      HB_SIZE nBodySize;
+      HB_BYTE * pBuffer = hb_fileLoadData( pFile, 0, &nBodySize );
 
-      if( nBodySize )
-      {
-         char * pbyBuffer;
-
-         pbyBuffer = ( char * ) hb_xgrab( nBodySize + sizeof( char ) + 1 );
-         hb_fileReadAt( pFile, pbyBuffer, nBodySize, 0 );
-         pbyBuffer[ nBodySize ] = '\0';
-
-         pHrbBody = hb_hrbLoad( ( const char * ) pbyBuffer, nBodySize, usMode, szHrb );
-         hb_xfree( pbyBuffer );
-      }
       hb_fileClose( pFile );
+
+      if( pBuffer )
+      {
+         pHrbBody = hb_hrbLoad( ( const char * ) pBuffer, nBodySize, usMode, szHrb );
+         hb_xfree( pBuffer );
+      }
+      else
+         hb_errRT_BASE( EG_CORRUPTION, 9998, NULL, HB_ERR_FUNCNAME, 0 );
    }
 
    return pHrbBody;

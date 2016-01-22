@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * OpenSSL API (SSL) - Harbour interface.
  *
  * Copyright 2009 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,11 +46,11 @@
 
 /* for applink.c */
 #if ! defined( HB_OPENSSL_STATIC )
-#  if defined( _MSC_VER )
-#     ifndef _CRT_SECURE_NO_WARNINGS
-#        define _CRT_SECURE_NO_WARNINGS
-#     endif
-#  endif
+   #if defined( _MSC_VER )
+      #ifndef _CRT_SECURE_NO_WARNINGS
+      #define _CRT_SECURE_NO_WARNINGS
+      #endif
+   #endif
 #endif
 
 #include "hbapi.h"
@@ -61,8 +59,8 @@
 #include "hbvm.h"
 
 #if defined( HB_OS_WIN )
-#  include <windows.h>
-#  include <wincrypt.h>
+   #include <windows.h>
+   #include <wincrypt.h>
 #endif
 
 #include "hbssl.h"
@@ -75,9 +73,9 @@
             Warning W8065 openssl/applink.c 40: Call to function '_setmode' with no prototype in function app_fsetmod
             Error E2451 openssl/applink.c 82: Undefined symbol '_lseek' in function OPENSSL_Applink
     */
-#  if ! defined( __BORLANDC__ )
-#     include "openssl/applink.c"
-#  endif
+   #if ! defined( __BORLANDC__ )
+      #include "openssl/applink.c"
+   #endif
 #endif
 
 HB_FUNC( SSL_INIT )
@@ -141,6 +139,13 @@ void * hb_SSL_is( int iParam )
 SSL * hb_SSL_par( int iParam )
 {
    void ** ph = ( void ** ) hb_parptrGC( &s_gcSSL_funcs, iParam );
+
+   return ph ? ( SSL * ) *ph : NULL;
+}
+
+SSL * hb_SSL_itemGet( PHB_ITEM pItem )
+{
+   void ** ph = ( void ** ) hb_itemGetPtrGC( pItem, &s_gcSSL_funcs );
 
    return ph ? ( SSL * ) *ph : NULL;
 }
@@ -241,8 +246,8 @@ HB_FUNC( SSL_PENDING )
 
 HB_FUNC( SSL_SET_BIO )
 {
-   BIO * rbio = ( BIO * ) hb_parptr( 2 );
-   BIO * wbio = ( BIO * ) hb_parptr( 2 );
+   BIO * rbio = hb_BIO_par( 2 );
+   BIO * wbio = hb_BIO_par( 3 );
 
    if( hb_SSL_is( 1 ) && rbio && wbio )
    {
@@ -650,7 +655,7 @@ HB_FUNC( SSL_GET_CURRENT_CIPHER )
       SSL * ssl = hb_SSL_par( 1 );
 
       if( ssl )
-         hb_retptr( ( void * ) SSL_get_current_cipher( ssl ) );
+         hb_retptr( HB_UNCONST( SSL_get_current_cipher( ssl ) ) );
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
@@ -1260,7 +1265,7 @@ HB_FUNC( SSL_SET_MTU )
 {
    if( hb_SSL_is( 1 ) )
    {
-#if ! defined( HB_OPENSSL_OLD_OSX_ )
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L && ! defined( HB_OPENSSL_OLD_OSX_ )
       SSL * ssl = hb_SSL_par( 1 );
 
       if( ssl )
@@ -1456,7 +1461,7 @@ HB_FUNC( SSL_USE_RSAPRIVATEKEY_ASN1 )
          /* 'const' not used in 2nd param because ssh.h misses it, too.
              Bug report sent: #1988
              [vszakats] */
-         hb_retni( SSL_use_RSAPrivateKey_ASN1( ssl, ( unsigned char * ) hb_parc( 2 ), ( int ) hb_parclen( 2 ) ) );
+         hb_retni( SSL_use_RSAPrivateKey_ASN1( ssl, ( unsigned char * ) HB_UNCONST( hb_parc( 2 ) ), ( int ) hb_parclen( 2 ) ) );
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
@@ -1469,7 +1474,7 @@ HB_FUNC( SSL_USE_PRIVATEKEY_ASN1 )
       SSL * ssl = hb_SSL_par( 2 );
 
       if( ssl )
-         hb_retni( SSL_use_PrivateKey_ASN1( hb_parni( 1 ), ssl, ( const unsigned char * ) hb_parc( 3 ), ( int ) hb_parclen( 3 ) ) );
+         hb_retni( SSL_use_PrivateKey_ASN1( hb_parni( 1 ), ssl, ( HB_SSL_CONST unsigned char * ) hb_parc( 3 ), ( int ) hb_parclen( 3 ) ) );
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
@@ -1482,7 +1487,7 @@ HB_FUNC( SSL_USE_CERTIFICATE_ASN1 )
       SSL * ssl = hb_SSL_par( 1 );
 
       if( ssl )
-         hb_retni( SSL_use_certificate_ASN1( ssl, ( const unsigned char * ) hb_parc( 2 ), ( int ) hb_parclen( 2 ) ) );
+         hb_retni( SSL_use_certificate_ASN1( ssl, ( HB_SSL_CONST unsigned char * ) hb_parc( 2 ), ( int ) hb_parclen( 2 ) ) );
    }
    else
       hb_errRT_BASE( EG_ARG, 2010, NULL, HB_ERR_FUNCNAME, HB_ERR_ARGS_BASEPARAMS );
@@ -1505,8 +1510,8 @@ HB_FUNC( SSL_USE_PRIVATEKEY )
 }
 
 /* Callback */
-/* -------- */
 
+#if OPENSSL_VERSION_NUMBER >= 0x00907000L
 static void hb_ssl_msg_callback( int write_p, int version, int content_type, const void * buf, size_t len, SSL * ssl, void * userdata )
 {
    HB_SYMBOL_UNUSED( ssl );
@@ -1524,6 +1529,7 @@ static void hb_ssl_msg_callback( int write_p, int version, int content_type, con
       hb_vmRequestRestore();
    }
 }
+#endif
 
 HB_FUNC( SSL_SET_MSG_CALLBACK )
 {
@@ -1533,7 +1539,8 @@ HB_FUNC( SSL_SET_MSG_CALLBACK )
 
       if( ssl )
       {
-         PHB_ITEM pCallback = hb_param( 2, HB_IT_BLOCK | HB_IT_SYMBOL );
+#if OPENSSL_VERSION_NUMBER >= 0x00907000L
+         PHB_ITEM pCallback = hb_param( 2, HB_IT_EVALITEM );
 
          if( pCallback )
          {
@@ -1548,6 +1555,7 @@ HB_FUNC( SSL_SET_MSG_CALLBACK )
             SSL_set_msg_callback_arg( ssl, NULL );
             SSL_set_msg_callback( ssl, NULL );
          }
+#endif
       }
    }
    else

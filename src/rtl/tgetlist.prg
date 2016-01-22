@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * HBGetList Class
  *
  * Copyright 1999 Antonio Linares <alinares@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 2001 Luiz Rafael Culik
  *    Support for CA-Cl*pper 5.3 Getsystem
@@ -172,7 +169,7 @@ METHOD ReadModal() CLASS HBGetList
    ::nReadProcLine := ProcLine( 2 )
 
 #ifdef HB_COMPAT_C53
-   ::nPos := ::Settle( iif( HB_ISNUMERIC( nPos ), nPos, 0 ), .T. )
+   ::nPos := ::Settle( hb_defaultValue( nPos, 0 ), .T. )
 
    IF ( lMsgFlag := HB_ISNUMERIC( nMsgRow ) .AND. ;
                     HB_ISNUMERIC( nMsgLeft ) .AND. ;
@@ -547,7 +544,7 @@ METHOD GetPreValidate( oGet, aMsg ) CLASS HBGetList
 
    IF oGet:preBlock != NIL
 
-      lUpdated  := ::lUpdated
+      lUpdated := ::lUpdated
 
       lWhen := Eval( oGet:preBlock, oGet, aMsg )
 
@@ -652,8 +649,6 @@ METHOD GetDoSetKey( bKeyBlock, oGet ) CLASS HBGetList
 
    lSetKey := Eval( bKeyBlock, ::cReadProcName, ::nReadProcLine, ::ReadVar() )
 
-   hb_default( @lSetKey, .T. )
-
    ::ShowScoreboard()
    oGet:updateBuffer()
 
@@ -665,18 +660,17 @@ METHOD GetDoSetKey( bKeyBlock, oGet ) CLASS HBGetList
       oGet:exitState := GE_ESCAPE
    ENDIF
 
-   RETURN lSetKey
+   RETURN hb_defaultValue( lSetKey, .T. )
 
 METHOD Settle( nPos, lInit ) CLASS HBGetList
 
    LOCAL nExitState
 
    hb_default( @nPos, ::nPos )
-   hb_default( @lInit, .F. )
 
    IF nPos == 0
       nExitState := GE_DOWN
-   ELSEIF nPos > 0 .AND. lInit /* NOTE: Never .T. in C5.2 mode. */
+   ELSEIF nPos > 0 .AND. hb_defaultValue( lInit, .F. )  /* NOTE: Never .T. in C5.2 mode. */
       nExitState := GE_NOEXIT
    ELSE
       nExitState := ::aGetList[ nPos ]:exitState
@@ -912,14 +906,15 @@ METHOD GUIReader( oGet, oMenu, aMsg ) CLASS HBGetList
 
       // De-activate the GET
       SWITCH oGUI:ClassName()
-         CASE "LISTBOX"
-         CASE "RADIOGROUP"
-            IF HB_ISNUMERIC( oGet:varGet() )
-               oGet:varPut( oGUI:value )
-               EXIT
-            ENDIF
-         OTHERWISE
-            oGet:varPut( oGUI:buffer )
+      CASE "LISTBOX"
+      CASE "RADIOGROUP"
+         IF HB_ISNUMERIC( oGet:varGet() )
+            oGet:varPut( oGUI:value )
+            EXIT
+         ENDIF
+         /* fall through */
+      OTHERWISE
+         oGet:varPut( oGUI:buffer )
       ENDSWITCH
       oGUI:killFocus()
 
@@ -945,6 +940,7 @@ METHOD GUIApplyKey( oGet, oGUI, nKey, oMenu, aMsg ) CLASS HBGetList
    LOCAL nMRow
    LOCAL nMCol
    LOCAL nButton
+   LOCAL cKey
 
    // Check for SET KEY first
    IF ( bKeyBlock := SetKey( nKey ) ) != NIL
@@ -1014,7 +1010,8 @@ METHOD GUIApplyKey( oGet, oGUI, nKey, oMenu, aMsg ) CLASS HBGetList
             nKey := 0
          ENDIF
 
-      ELSEIF ( nButton := oGUI:FindText( hb_keyChar( nKey ), oGUI:Value + 1, .F., .F. ) ) != 0
+      ELSEIF !( ( cKey := hb_keyChar( nKey ) ) == "" ) .AND. ;
+             ( nButton := oGUI:FindText( cKey, oGUI:Value + 1, .F., .F. ) ) != 0
          oGUI:Select( nButton )
 
       ENDIF
@@ -1186,14 +1183,15 @@ METHOD GUIPostValidate( oGet, oGUI, aMsg ) CLASS HBGetList
    IF !( oGUI:ClassName() == "TBROWSE" )
       xOldValue := oGet:varGet()
       SWITCH oGUI:ClassName()
-         CASE "LISTBOX"
-         CASE "RADIOGROUP"
-            IF HB_ISNUMERIC( oGet:varGet() )
-               xNewValue := oGUI:value
-               EXIT
-            ENDIF
-         OTHERWISE
-            xNewValue := oGUI:buffer
+      CASE "LISTBOX"
+      CASE "RADIOGROUP"
+         IF HB_ISNUMERIC( oGet:varGet() )
+            xNewValue := oGUI:value
+            EXIT
+         ENDIF
+         /* fall through */
+      OTHERWISE
+         xNewValue := oGUI:buffer
       ENDSWITCH
    ENDIF
 
@@ -1213,7 +1211,7 @@ METHOD GUIPostValidate( oGet, oGUI, aMsg ) CLASS HBGetList
       SetPos( oGet:row, oGet:col )
 
       ::ShowScoreBoard()
-      IF ! ( oGUI:ClassName() == "TBROWSE" )
+      IF !( oGUI:ClassName() == "TBROWSE" )
          oGUI:Select( oGet:varGet() )
       ENDIF
 
@@ -1222,7 +1220,7 @@ METHOD GUIPostValidate( oGet, oGUI, aMsg ) CLASS HBGetList
       __GetListLast( Self )
 
       IF ::lKillRead
-         oGet:exitState := GE_ESCAPE      // Provokes ReadModal() exit
+         oGet:exitState := GE_ESCAPE  // Provokes ReadModal() exit
          lValid := .T.
       ENDIF
 

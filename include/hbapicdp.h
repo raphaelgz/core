@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * Header file for the CodePages API
  *
  * Copyright 2002 Alexander S.Kresin <alex@belacy.belgorod.su>
  * Copyright 2009 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -396,7 +394,7 @@ extern HB_EXPORT void         hb_vmSetCDP( PHB_CODEPAGE pCDP );
 /* maximal size of unicode character in 'char' representation for buffers
  * To encode all ISO 10646 Universal Character Set (UCS) values (characters
  * can be encoded in 31-bit code space) in UTF-8 we need 6 bytes.
- * UC2 characters (16bits) encoded in UTF8 needs 3 bytes.
+ * UC2 characters (16-bit) encoded in UTF-8 needs 3 bytes.
  * 8 seems to be a little bit redundant and large enough for all encodings.
  * In theory some other encodings may need more bytes but I do not know any
  * one used in practice. [druzus]

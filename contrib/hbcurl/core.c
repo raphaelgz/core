@@ -1,11 +1,9 @@
 /*
- * Harbour Project source code:
  * libcurl 'easy' API - Harbour interface.
  *
  * Copyright 2008-2010 Viktor Szakats (vszakats.net/harbour)
  * originally based on:
  * Copyright 2005 Luiz Rafael Culik Guimaraes <luiz at xharbour.com.br>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -165,19 +163,24 @@ static HB_HASH_FUNC( hb_curl_HashCmp )
 
 static const char * hb_curl_StrHashNew( PHB_CURL hb_curl, const char * szValue )
 {
-   char * szHash;
-
-   if( ! hb_curl->pHash )
-      hb_curl->pHash = hb_hashTableCreate( HB_CURL_HASH_TABLE_SIZE,
-                                           hb_curl_HashKey, hb_curl_HashDel, hb_curl_HashCmp );
-
-   szHash = ( char * ) hb_hashTableFind( hb_curl->pHash, szValue );
-   if( ! szHash )
+   if( szValue )
    {
-      szHash = hb_strdup( szValue );
-      hb_hashTableAdd( hb_curl->pHash, szHash, szHash );
+      char * szHash;
+
+      if( ! hb_curl->pHash )
+         hb_curl->pHash = hb_hashTableCreate( HB_CURL_HASH_TABLE_SIZE,
+                                              hb_curl_HashKey, hb_curl_HashDel, hb_curl_HashCmp );
+
+      szHash = ( char * ) hb_hashTableFind( hb_curl->pHash, szValue );
+      if( ! szHash )
+      {
+         szHash = hb_strdup( szValue );
+         hb_hashTableAdd( hb_curl->pHash, szHash, szHash );
+      }
+      return szHash;
    }
-   return szHash;
+   else
+      return NULL;
 }
 
 #  define hb_curl_StrHash( c, s )  hb_curl_StrHashNew( ( c ), ( s ) )
@@ -193,17 +196,18 @@ static const char * hb_curl_StrHashNew( PHB_CURL hb_curl, const char * szValue )
 
 static void * hb_curl_xgrab( size_t size )
 {
-   return hb_xgrab( size );
+   return size > 0 ? hb_xgrab( size ) : NULL;
 }
 
 static void hb_curl_xfree( void * p )
 {
-   hb_xfree( p );
+   if( p )
+      hb_xfree( p );
 }
 
 static void * hb_curl_xrealloc( void * p, size_t size )
 {
-   return hb_xrealloc( p, size );
+   return size > 0 ? ( p ? hb_xrealloc( p, size ) : hb_xgrab( size ) ) : NULL;
 }
 
 static char * hb_curl_strdup( const char * s )
@@ -389,7 +393,7 @@ static int hb_curl_progress_callback( void * Cargo, double dltotal, double dlnow
       {
          hb_vmPushEvalSym();
          hb_vmPush( ( PHB_ITEM ) Cargo );
-         hb_vmPushDouble( ulnow > 0 ? ulnow   : dlnow, HB_DEFAULT_DECIMALS );
+         hb_vmPushDouble( ulnow > 0 ? ulnow : dlnow, HB_DEFAULT_DECIMALS );
          hb_vmPushDouble( ultotal > 0 ? ultotal : dltotal, HB_DEFAULT_DECIMALS );
          hb_vmSend( 2 );
 

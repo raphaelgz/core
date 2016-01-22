@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * The Language API
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -266,11 +264,14 @@ static HB_BOOL hb_langTranslate( const char * szNewId, PHB_LANG lang, PHB_CODEPA
    PHB_LANG_BASE pBase;
    HB_LANG_TRANS trans;
    char *        buffer, * ptr;
-   HB_SIZE       nSize = 0;
+   HB_SIZE       nSize;
    int i;
 
    if( ! szNewId || *szNewId == 0 || ! lang || ! cdpIn || ! cdpOut || cdpIn == cdpOut )
       return HB_FALSE;
+
+   memset( &trans, 0, sizeof( trans ) );
+   nSize = sizeof( trans );
 
    for( i = 0; i < HB_LANG_ITEM_MAX_; ++i )
    {
@@ -283,19 +284,14 @@ static HB_BOOL hb_langTranslate( const char * szNewId, PHB_LANG lang, PHB_CODEPA
       else
          pszTrans = hb_cdpDup( lang->pItemList[ i ], cdpIn, cdpOut );
 
-      if( strcmp( pszTrans, lang->pItemList[ i ] ) == 0 )
-      {
-         hb_xfree( pszTrans );
-         trans.pItemList[ i ] = NULL;
-      }
-      else
+      if( strcmp( pszTrans, lang->pItemList[ i ] ) != 0 )
       {
          trans.pItemList[ i ] = pszTrans;
          nSize += strlen( pszTrans ) + 1;
       }
+      else
+         hb_xfree( pszTrans );
    }
-
-   nSize += sizeof( HB_LANG_TRANS );
 
    buffer = ( char * ) hb_xgrab( nSize );
    ptr    = buffer + sizeof( trans );
@@ -305,7 +301,7 @@ static HB_BOOL hb_langTranslate( const char * szNewId, PHB_LANG lang, PHB_CODEPA
       {
          HB_SIZE nLen = strlen( trans.pItemList[ i ] ) + 1;
          memcpy( ptr, trans.pItemList[ i ], nLen );
-         hb_xfree( ( void * ) trans.pItemList[ i ] );
+         hb_xfree( HB_UNCONST( trans.pItemList[ i ] ) );
          trans.pItemList[ i ] = ptr;
          ptr += nLen;
       }

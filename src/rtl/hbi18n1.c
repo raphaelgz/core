@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * I18N translation Harbour functions
  *
  * Copyright 2008 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -199,7 +197,7 @@ static const char * hb_i18n_pluralformid( int iForm )
 }
 
 /* NOTE: Source:
-         http://www.gnu.org/software/hello/manual/gettext/Plural-forms.html
+         https://www.gnu.org/software/hello/manual/gettext/Plural-forms.html
          [vszakats] */
 
 static long hb_i18n_pluralindex( int iForm, PHB_ITEM pNum )
@@ -317,8 +315,7 @@ static PHB_I18N_TRANS hb_i18n_new( void )
    PHB_I18N_TRANS pI18N;
    PHB_ITEM pKey;
 
-   pI18N = ( PHB_I18N_TRANS ) memset( hb_xgrab( sizeof( HB_I18N_TRANS ) ),
-                                      0, sizeof( HB_I18N_TRANS ) );
+   pI18N = ( PHB_I18N_TRANS ) hb_xgrabz( sizeof( HB_I18N_TRANS ) );
    hb_atomic_set( &pI18N->iUsers, 1 );
    pI18N->table = hb_hashNew( hb_itemNew( NULL ) );
    pI18N->context_table = hb_hashNew( hb_itemNew( NULL ) );
@@ -394,8 +391,7 @@ static PHB_I18N_TRANS hb_i18n_initialize( PHB_ITEM pTable )
 
       if( pContext && pDefContext )
       {
-         pI18N = ( PHB_I18N_TRANS ) memset( hb_xgrab( sizeof( HB_I18N_TRANS ) ),
-                                            0, sizeof( HB_I18N_TRANS ) );
+         pI18N = ( PHB_I18N_TRANS ) hb_xgrabz( sizeof( HB_I18N_TRANS ) );
          hb_atomic_set( &pI18N->iUsers, 1 );
          pI18N->table = pTable;
          pI18N->context_table = hb_itemNew( pContext );

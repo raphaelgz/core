@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * Header file for compiler and runtime configuration
  *
  * Copyright 2000-2009 Viktor Szakats (vszakats.net/harbour)
  * Copyright 1999 Ryszard Glab <rglab@imid.med.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -153,6 +151,9 @@
       defined( __MINGW64__ )
    #define HB_CPU_X86_64
 
+#elif defined( __arm64__ )
+   #define HB_CPU_ARM_64
+
 #elif defined( __arm__ ) || \
       defined( __arm ) || \
       defined( ARM ) || \
@@ -280,6 +281,7 @@
    Visual Studio 2008, version 9.0         1500
    Visual Studio 2010, version 10.0        1600
    Visual Studio 2012, version 11.0        1700
+   Visual Studio 2013, version 12.0        1800
 */
 
 /* ***********************************************************************
@@ -369,7 +371,8 @@
 
 /* Sub-option inside HB_OS_DARWIN */
 #ifndef HB_OS_IOS /* Experimental */
-   #if defined( HB_OS_DARWIN ) && defined( HB_CPU_ARM )
+   #if defined( HB_OS_DARWIN ) && \
+       ( defined( HB_CPU_ARM ) || defined( __IPHONE_OS_VERSION_MIN_REQUIRED ) )
       #define HB_OS_IOS
    #endif
 #endif

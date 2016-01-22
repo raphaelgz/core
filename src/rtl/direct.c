@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Directory() function
  *
  * Copyright 1999 Leslee Griffith <les.griffith@vantagesystems.ca>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -99,7 +97,7 @@
          this issue is very much platform specific, and this is
          not the only place which may need the conversion [vszakats]. */
 
-PHB_ITEM hb_fsDirectory( const char * pszDirSpec, const char * pszAttributes )
+PHB_ITEM hb_fsDirectory( const char * pszDirSpec, const char * pszAttributes, HB_BOOL fDateTime )
 {
    PHB_ITEM  pDir = hb_itemArrayNew( 0 );
    char *    pszFree = NULL;
@@ -157,9 +155,13 @@ PHB_ITEM hb_fsDirectory( const char * pszDirSpec, const char * pszAttributes )
          hb_arrayNew    ( pSubarray, F_LEN );
          hb_arraySetC   ( pSubarray, F_NAME, ffind->szName );
          hb_arraySetNInt( pSubarray, F_SIZE, ffind->size );
-         hb_arraySetDL  ( pSubarray, F_DATE, ffind->lDate );
          hb_arraySetC   ( pSubarray, F_TIME, ffind->szTime );
          hb_arraySetC   ( pSubarray, F_ATTR, hb_fsAttrDecode( ffind->attr, buffer ) );
+
+         if( fDateTime )
+            hb_arraySetTDT( pSubarray, F_DATE, ffind->lDate, ffind->lTime );
+         else
+            hb_arraySetDL ( pSubarray, F_DATE, ffind->lDate );
 
          /* Don't exit when array limit is reached */
          hb_arrayAddForward( pDir, pSubarray );
@@ -179,5 +181,10 @@ PHB_ITEM hb_fsDirectory( const char * pszDirSpec, const char * pszAttributes )
 
 HB_FUNC( DIRECTORY )
 {
-   hb_itemReturnRelease( hb_fsDirectory( hb_parc( 1 ), hb_parc( 2 ) ) );
+   hb_itemReturnRelease( hb_fsDirectory( hb_parc( 1 ), hb_parc( 2 ), HB_FALSE ) );
+}
+
+HB_FUNC( HB_DIRECTORY )
+{
+   hb_itemReturnRelease( hb_fsDirectory( hb_parc( 1 ), hb_parc( 2 ), HB_TRUE ) );
 }

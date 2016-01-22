@@ -1,9 +1,7 @@
 /*
- * xHarbour Project source code:
  * TIP Class oriented Internet protocol library
  *
  * Copyright 2003 Giancarlo Niccolai <gian@niccolai.ws>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -56,6 +54,7 @@
 */
 
 #include "hbclass.ch"
+#include "fileio.ch"
 
 CREATE CLASS TIPMail
 
@@ -586,7 +585,7 @@ METHOD setHeader( cSubject, cFrom, xTo, xCC, xBCC ) CLASS TIPMail
    IF ! Empty( aCC )
       cCC := ""
       imax := Len( aCC )
-      FOR i := 2 TO imax
+      FOR i := 1 TO imax
          cCC += LTrim( WordEncodeQ( tip_GetNameEmail( AllTrim( aCC[ i ] ) ), ::cCharset ) + " <" + tip_GetRawEmail( AllTrim( aCC[ i ] ) ) + ">" )
          IF i < imax
             cCC += "," + tip_CRLF() + " "
@@ -601,7 +600,7 @@ METHOD setHeader( cSubject, cFrom, xTo, xCC, xBCC ) CLASS TIPMail
    IF ! Empty( aBCC )
       cBCC := ""
       imax := Len( aBCC )
-      FOR i := 2 TO imax
+      FOR i := 1 TO imax
          cBCC += LTrim( WordEncodeQ( tip_GetNameEmail( AllTrim( aBCC[ i ] ) ), ::cCharset ) + " <" + tip_GetRawEmail( AllTrim( aBCC[ i ] ) ) + ">" )
          IF i < imax
             cBCC += "," + tip_CRLF() + " "
@@ -618,23 +617,20 @@ METHOD setHeader( cSubject, cFrom, xTo, xCC, xBCC ) CLASS TIPMail
 METHOD attachFile( cFileName ) CLASS TIPMail
 
    LOCAL cContent := hb_MemoRead( cFileName )
-   LOCAL cMimeType := tip_FileMimeType( cFileName )
-   LOCAL cDelim := hb_ps()
-
+   LOCAL cBaseName
    LOCAL oAttach
 
-   IF Empty( cContent )
+   IF HB_ISNULL( cContent )
       RETURN .F.
    ENDIF
 
    oAttach   := TIPMail():new( cContent, "base64" )
-   cFileName := SubStr( cFileName, RAt( cFileName, cDelim ) + 1 )
+   cBaseName := hb_FNameNameExt( cFileName )
 
-   oAttach:setFieldPart( "Content-Type", cMimeType )
-   oAttach:setFieldOption( "Content-Type", "name", cFileName )
-
+   oAttach:setFieldPart( "Content-Type", tip_FileMimeType( cFileName ) )
+   oAttach:setFieldOption( "Content-type", "name", cBaseName )
    oAttach:setFieldPart( "Content-Disposition", "attachment" )
-   oAttach:setFieldOption( "Content-Disposition", "filename", cFileName )
+   oAttach:setFieldOption( "Content-Disposition", "filename", cBaseName )
 
    RETURN ::attach( oAttach )
 
@@ -642,26 +638,16 @@ METHOD detachFile( cPath ) CLASS TIPMail
 
    LOCAL cContent := ::getBody()
    LOCAL cFileName := ::getFileName()
-   LOCAL cDelim := hb_ps()
-   LOCAL nFileHandle
 
-   IF Empty( cFileName )
+   IF HB_ISNULL( cFileName )
       RETURN .F.
    ENDIF
 
    IF HB_ISSTRING( cPath )
-      cFileName := StrTran( cPath + cDelim + cFileName, cDelim + cDelim, cDelim )
+      cFileName := hb_DirSepAdd( cPath ) + cFileName
    ENDIF
 
-   nFileHandle := FCreate( cFileName )
-   IF FError() != 0
-      RETURN .F.
-   ENDIF
-
-   FWrite( nFileHandle, cContent )
-   FClose( nFileHandle )
-
-   RETURN FError() == 0
+   RETURN hb_MemoWrit( cFileName, cContent )
 
 METHOD getFileName() CLASS TIPMail
    RETURN StrTran( ::getFieldOption( "Content-Type", "name" ), '"' )
@@ -746,3 +732,18 @@ FUNCTION tip_GetNameEmail( cAddress )
    ENDIF
 
    RETURN cAddress
+
+FUNCTION __tip_FAttrToUmask( nAttr )
+   RETURN hb_bitOr( ;
+      Min( hb_bitAnd( nAttr, HB_FA_SUID ), 1 ) * 0x4000, ;
+      Min( hb_bitAnd( nAttr, HB_FA_SGID ), 1 ) * 0x2000, ;
+      Min( hb_bitAnd( nAttr, HB_FA_SVTX ), 1 ) * 0x1000, ;
+      Min( hb_bitAnd( nAttr, HB_FA_RUSR ), 1 ) * 0x0400, ;
+      Min( hb_bitAnd( nAttr, HB_FA_WUSR ), 1 ) * 0x0200, ;
+      Min( hb_bitAnd( nAttr, HB_FA_XUSR ), 1 ) * 0x0100, ;
+      Min( hb_bitAnd( nAttr, HB_FA_RGRP ), 1 ) * 0x0040, ;
+      Min( hb_bitAnd( nAttr, HB_FA_WGRP ), 1 ) * 0x0020, ;
+      Min( hb_bitAnd( nAttr, HB_FA_XGRP ), 1 ) * 0x0010, ;
+      Min( hb_bitAnd( nAttr, HB_FA_ROTH ), 1 ) * 0x0004, ;
+      Min( hb_bitAnd( nAttr, HB_FA_WOTH ), 1 ) * 0x0002, ;
+      Min( hb_bitAnd( nAttr, HB_FA_XOTH ), 1 ) * 0x0001 )

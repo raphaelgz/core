@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * CheckBox class
  *
  * Copyright 2000 Luiz Rafael Culik <culik@sl.conex.net>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -151,7 +149,6 @@ METHOD killFocus() CLASS CheckBox
 
       ::display()
       SetCursor( ::nCursor )
-
    ENDIF
 
    RETURN Self
@@ -217,7 +214,6 @@ METHOD display() CLASS CheckBox
          hb_DispOutAt( ::nCapRow, ::nCapCol + nPos - 1, SubStr( cCaption, nPos, 1 ), ;
             hb_ColorIndex( ::cColorSpec, 3 ) )
       ENDIF
-
    ENDIF
 
    DispEnd()
@@ -328,11 +324,11 @@ METHOD New( nRow, nCol, cCaption ) CLASS CheckBox
 
    __defaultNIL( @cCaption, "" )
 
-   ::caption  := cCaption
-   ::capRow   := nRow
-   ::capCol   := nCol + 3 + 1
-   ::row      := nRow
-   ::col      := nCol
+   ::caption := cCaption
+   ::capRow  := nRow
+   ::capCol  := nCol + 3 + 1
+   ::row     := nRow
+   ::col     := nCol
 
    IF IsDefColor()
       ::cColorSpec := "W/N,W+/N,W/N,W+/N"

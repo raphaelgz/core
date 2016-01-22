@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Harbour simple hash table implementation
  *
  * Copyright 1999-2002 Ryszard Glab <rglab@imid.med.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -90,8 +88,7 @@ PHB_HASH_TABLE hb_hashTableCreate( HB_SIZE nSize,
    pTable->pCompFunc = pComp;
    pTable->nCount = pTable->nUsed = 0;
 
-   pTable->pItems = ( PHB_HASH_ITEM * ) hb_xgrab( sizeof( PHB_HASH_ITEM ) * nSize );
-   memset( pTable->pItems, 0, sizeof( PHB_HASH_ITEM ) * nSize );
+   pTable->pItems = ( PHB_HASH_ITEM * ) hb_xgrabz( sizeof( PHB_HASH_ITEM ) * nSize );
 
    return pTable;
 }

@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *   dummy I/O driver initialization
+ * dummy I/O driver initialization
  *
  * Copyright 2014 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -51,8 +49,6 @@
 
 #include "hbapi.h"
 #include "hbapifs.h"
-
-#define HB_FILE_ERR_UNSUPPORTED  ( ( HB_ERRCODE ) FS_ERROR )
 
 static HB_BOOL s_fileAccept( PHB_FILE_FUNCS pFuncs, const char * pszFileName )
 {
@@ -232,13 +228,13 @@ static char * s_fileLinkRead( PHB_FILE_FUNCS pFuncs, const char * pszFileName )
 }
 
 static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
-                            const char * pszDefExt, HB_USHORT uiExFlags,
+                            const char * pszDefExt, HB_FATTR nExFlags,
                             const char * pPaths, PHB_ITEM pError )
 {
    HB_SYMBOL_UNUSED( pFuncs );
    HB_SYMBOL_UNUSED( pszName );
    HB_SYMBOL_UNUSED( pszDefExt );
-   HB_SYMBOL_UNUSED( uiExFlags );
+   HB_SYMBOL_UNUSED( nExFlags );
    HB_SYMBOL_UNUSED( pszDefExt );
    HB_SYMBOL_UNUSED( pPaths );
    HB_SYMBOL_UNUSED( pError );

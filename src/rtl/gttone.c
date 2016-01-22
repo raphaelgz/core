@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    Low level tone code common to some GT drivers
+ * Low level tone code common to some GT drivers
  *
  * Copyright 2006 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * the body of TONE function from Windows taken from GTWIN created by
  * the following authors:
@@ -25,7 +23,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -69,8 +67,9 @@
 #undef HB_HAS_WIN9X_TONE
 
 #if defined( HB_CPU_X86 ) && \
-    ( defined( __BORLANDC__ ) || defined( _MSC_VER ) || \
-      defined( __WATCOMC__ ) || defined( __MINGW32__ ) )
+    ( ( defined( _MSC_VER ) && _MSC_VER < 1900 ) || \
+      defined( __BORLANDC__ ) || defined( __WATCOMC__ ) || \
+      defined( __MINGW32__ ) )
 
 #define HB_HAS_WIN9X_TONE
 

@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
- *    Compiler PCODE optimizer
+ * Compiler PCODE optimizer
  *
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
  * Copyright 2008 Mindaugas Kavaliauskas <dbtopas / at / dbtopas.lt>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -1298,7 +1296,7 @@ static int hb_compPCodeTraceAssignedUnused( PHB_HFUNC pFunc, HB_SIZE nPos, HB_BY
                if( fCanBreak )
                {
                   nPos += hb_compPCodeSize( pFunc, nPos );
-                  while( pFunc->pCode[ nPos ] != HB_P_ENDPROC && pFunc->pCode[ nPos ] != HB_P_ENDBLOCK && 
+                  while( pFunc->pCode[ nPos ] != HB_P_ENDPROC && pFunc->pCode[ nPos ] != HB_P_ENDBLOCK &&
                          pFunc->pCode[ nPos ] != HB_P_SEQBEGIN && pFunc->pCode[ nPos ] != HB_P_SEQEND )
                   {
                      nPos += hb_compPCodeSize( pFunc, nPos );
@@ -1618,8 +1616,7 @@ void hb_compPCodeTraceOptimizer( HB_COMP_DECL )
    }
 
    /* Initial scan */
-   pLocals = ( PHB_OPT_LOCAL ) hb_xgrab( sizeof( HB_OPT_LOCAL ) * usLocalCount );
-   memset( pLocals, 0, sizeof( HB_OPT_LOCAL ) * usLocalCount );
+   pLocals = ( PHB_OPT_LOCAL ) hb_xgrabz( sizeof( HB_OPT_LOCAL ) * usLocalCount );
    hb_compPCodeEnumScanLocals( pFunc, pLocals );
 
    /* Check */

@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * The Error API
  *
  * Copyright 1999 Antonio Linares <alinares@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
  *    DosError()
@@ -588,14 +585,14 @@ HB_USHORT hb_errLaunch( PHB_ITEM pError )
 
          /* If the error block didn't return a logical value, */
          /* or the canSubstitute flag has been set, consider it as a failure */
-         if( hb_itemType( pResult ) != HB_IT_LOGICAL || ( uiFlags & EF_CANSUBSTITUTE ) )
+         if( ! HB_IS_LOGICAL( pResult ) || ( uiFlags & EF_CANSUBSTITUTE ) )
             bFailure = HB_TRUE;
          else
          {
             uiAction = hb_itemGetL( pResult ) ? E_RETRY : E_DEFAULT;
 
             if( ( uiAction == E_DEFAULT && !( uiFlags & EF_CANDEFAULT ) ) ||
-                ( uiAction == E_RETRY   && !( uiFlags & EF_CANRETRY   ) ) )
+                ( uiAction == E_RETRY   && !( uiFlags & EF_CANRETRY ) ) )
                bFailure = HB_TRUE;
          }
 

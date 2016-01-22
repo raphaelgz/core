@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Dynamic symbol table management
  *
  * Copyright 1999 Antonio Linares <alinares@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -119,8 +117,7 @@ static PHB_DYNS hb_dynsymInsert( PHB_SYMB pSymbol, HB_UINT uiPos )
                sizeof( DYNHB_ITEM ) * ( s_uiDynSymbols - uiPos - 1 ) );
    }
 
-   pDynSym = ( PHB_DYNS ) hb_xgrab( sizeof( HB_DYNS ) );
-   memset( pDynSym, 0, sizeof( HB_DYNS ) );
+   pDynSym = ( PHB_DYNS ) hb_xgrabz( sizeof( HB_DYNS ) );
    pDynSym->pSymbol  = pSymbol;
    pDynSym->uiSymNum = s_uiDynSymbols;
 

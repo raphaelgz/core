@@ -1,9 +1,7 @@
 /*
- * xHarbour Project source code:
  * C Structure Support.
  *
  * Copyright 2000 Ron Pinkas <ronpinkas@profit-master.com>
- * www - http://www.xharbour.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -72,12 +70,12 @@ static PHB_ITEM hb_itemPutCRaw( PHB_ITEM pItem, const char * szText, HB_SIZE nLe
    if( nLen == 0 )
    {
       if( szText )
-         hb_xfree( ( void * ) szText );
+         hb_xfree( HB_UNCONST( szText ) );
       szText = "";
    }
    pItem->type = HB_IT_STRING;
    pItem->item.asString.length    = nLen;
-   pItem->item.asString.value     = ( char * ) szText;
+   pItem->item.asString.value     = ( char * ) HB_UNCONST( szText );
    pItem->item.asString.allocated = nLen;
 
    return pItem;
@@ -99,7 +97,7 @@ static PHB_ITEM hb_itemPutCRawStatic( PHB_ITEM pItem, const char * szText, HB_SI
    pItem->type = HB_IT_STRING;
    pItem->item.asString.allocated = 0;
    pItem->item.asString.length    = nLen;
-   pItem->item.asString.value     = ( char * ) szText;
+   pItem->item.asString.value     = ( char * ) HB_UNCONST( szText );
 
    return pItem;
 }
@@ -1414,7 +1412,7 @@ HB_FUNC( HB_STRING2POINTER )
    const char * pszString = hb_parc( 1 );
 
    if( pszString )
-      hb_retptr( ( void * ) pszString );
+      hb_retptr( HB_UNCONST( pszString ) );
    else
       hb_errRT_BASE_SubstR( EG_ARG, 1099, NULL, HB_ERR_FUNCNAME, 1, hb_paramError( 1 ) );
 }

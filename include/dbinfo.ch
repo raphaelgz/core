@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for the RDD API Index OrderInfo and DBInfo support
  *
  * Copyright 2000 {list of individual authors and e-mail addresses}
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -105,6 +103,9 @@
 #define RDDI_PASSWORD            42   /* Get/Set default password */
 #define RDDI_LOCKRETRY           43   /* Get/Set record and file lock timeout value */
 #define RDDI_DIRTYREAD           44   /* Get/Set index dirty read flag */
+#define RDDI_INDEXPAGESIZE       45   /* Get/Set default index page size */
+#define RDDI_DECIMALS            46   /* Get/Set default number of decimal places for numeric fields if it's undefined */
+#define RDDI_SETHEADER           47   /* DBF header updating modes */
 
 /*
    Constants for SELF_ORDINFO ()
@@ -140,7 +141,7 @@
 #define DBOI_KEYDELETE           37  /* Custom Index: Was Key Deletion successful?      */
 #define DBOI_KEYVAL              38  /* The value of the current key      */
 #define DBOI_SCOPETOP            39  /* Get or Set the scope top          */
-#define DBOI_SCOPEBOTTOM         40  /* Get or Set the scope botto        */
+#define DBOI_SCOPEBOTTOM         40  /* Get or Set the scope bottom       */
 #define DBOI_SCOPETOPCLEAR       41  /* Clear the scope top               */
 #define DBOI_SCOPEBOTTOMCLEAR    42  /* Clear the scope bottom            */
 #define DBOI_CUSTOM              45  /* Is this a Custom Index?           */
@@ -203,6 +204,7 @@
 #define DBOI_USECURRENT         131  /* get/set "use current index" flag */
 #define DBOI_INDEXTYPE          132  /* current index type */
 #define DBOI_RESETPOS           133  /* rest logical and raw positions */
+#define DBOI_INDEXPAGESIZE      134  /* get index page size */
 
 /* return values for DBOI_OPTLEVEL */
 #define DBOI_OPTIMIZED_NONE       0
@@ -289,6 +291,8 @@
 #define DBI_ISTEMPORARY         145  /* Is the table a temporary one? */
 #define DBI_LOCKTEST            146  /* record / file lock test */
 #define DBI_CODEPAGE            147  /* Codepage used */
+#define DBI_TRANSREC            148  /* Is it destination table of currently processed COPY TO or APPEND FROM operation? */
+#define DBI_SETHEADER           149  /* DBF header updating modes */
 
 /* RECORD MAP (RM) support */
 #define DBI_RM_SUPPORTED        150  /* has WA RDD record map support? */
@@ -365,12 +369,12 @@
 
 /* LOCK SCHEMES */
 #define DB_DBFLOCK_DEFAULT      0
-#define DB_DBFLOCK_CLIPPER      1   /* default Clipper locking scheme */
+#define DB_DBFLOCK_CLIPPER      1   /* default Cl*pper locking scheme */
 #define DB_DBFLOCK_COMIX        2   /* COMIX and CL53 DBFCDX hyper locking scheme */
 #define DB_DBFLOCK_VFP          3   /* [V]FP, CL52 DBFCDX, SIx3 SIXCDX, CDXLOCK.OBJ */
 #define DB_DBFLOCK_HB32         4   /* Harbour hyper locking scheme for 32bit file API */
 #define DB_DBFLOCK_HB64         5   /* Harbour hyper locking scheme for 64bit file API */
-#define DB_DBFLOCK_CLIPPER2     6   /* extended Clipper locking scheme NTXLOCK2.OBJ */
+#define DB_DBFLOCK_CLIPPER2     6   /* extended Cl*pper locking scheme NTXLOCK2.OBJ */
 
 /* for backward compatibility */
 #ifdef HB_LEGACY_LEVEL5
@@ -378,5 +382,26 @@
    #define DB_DBFLOCK_CL53         DB_DBFLOCK_COMIX
    #define DB_DBFLOCK_CL53EXT      DB_DBFLOCK_HB32
 #endif
+
+/* DBF HEADER UPDATING */
+#define DB_SETHEADER_CLOSE    0  /* update in CLOSE method - it always happens if necessary */
+#define DB_SETHEADER_COMMIT   1  /* update in FLUSH method */
+#define DB_SETHEADER_WRITE    2  /* update in GOCOLD method */
+#define DB_SETHEADER_APPEND   0  /* record append sets update header flag (always enabled) */
+#define DB_SETHEADER_REPLACE  4  /* record modification sets update header flag */
+#define DB_SETHEADER_YYEAR    16 /* store year() % 100 instead of year - 1900 */
+
+/* update in CLOSE after append only */
+#define DB_SETHEADER_MINIMAL     DB_SETHEADER_CLOSE
+/* update in COMMIT and CLOSE after append only */
+#define DB_SETHEADER_COMMITSYNC  DB_SETHEADER_COMMIT
+/* update in GOCOLD after append only - default */
+#define DB_SETHEADER_APPENDSYNC  DB_SETHEADER_WRITE
+/* update in CLOSE after any record modification */
+#define DB_SETHEADER_CHANGE      ( DB_SETHEADER_CLOSE + DB_SETHEADER_REPLACE )
+/* update in COMMIT and CLOSE after any record modification - Cl*pper compatible */
+#define DB_SETHEADER_CLIPPER     ( DB_SETHEADER_COMMIT + DB_SETHEADER_REPLACE )
+/* update in GOCOLD after any record modification */
+#define DB_SETHEADER_FULL        ( DB_SETHEADER_WRITE + DB_SETHEADER_REPLACE )
 
 #endif /* HB_DBINFO_CH_ */

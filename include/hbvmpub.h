@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for the generated C language source code
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -66,6 +64,7 @@ struct _HB_SYMB;
 #  define HB_ITEM_TYPE( p )      ( HB_ITEM_TYPERAW( p ) & ~ HB_IT_DEFAULT )
 #  define HB_OBJ_CLASS( p )      ( ( p )->item.asArray.value->uiClass )
 #  define HB_ARRAY_OBJ( p )      ( ( p )->item.asArray.value->uiClass != 0 )
+#  define HB_VM_PUSHNIL()        do { hb_stackAllocItem()->type = HB_IT_NIL; } while( 0 )
 
 #  define HB_ITEM_GET_NUMINTRAW( p )  ( HB_IS_INTEGER( p ) ? \
                                         ( HB_MAXINT ) (p)->item.asInteger.value : \
@@ -218,12 +217,13 @@ typedef HB_CARGO_FUNC( ( * PHB_CARGO_FUNC ) );
 
 typedef void * ( * PHB_ALLOCUPDT_FUNC )( void *, int );
 
-typedef void (*HB_INIT_FUNC)(void *);
+typedef void ( * HB_INIT_FUNC )( void * );
 /* List of functions used by hb_vmAtInit()/hb_vmAtExit() */
 typedef struct _HB_FUNC_LIST
 {
    HB_INIT_FUNC   pFunc;
    void *         cargo;
+   void *         hDynLib;
    struct _HB_FUNC_LIST * pNext;
 } HB_FUNC_LIST, * PHB_FUNC_LIST;
 

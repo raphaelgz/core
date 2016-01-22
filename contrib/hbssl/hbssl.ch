@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * OpenSSL API - Harbour header.
  *
  * Copyright 2009 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -81,6 +79,8 @@
 #define HB_SSL_ERROR_ZERO_RETURN                            6
 #define HB_SSL_ERROR_WANT_CONNECT                           7
 #define HB_SSL_ERROR_WANT_ACCEPT                            8
+
+#define HB_SSL_SOCK_ERROR_BASE                              100
 
 #define HB_SSL_OP_MICROSOFT_SESS_ID_BUG                     0x00000001
 #define HB_SSL_OP_NETSCAPE_CHALLENGE_BUG                    0x00000002
@@ -240,6 +240,7 @@
 #define HB_EVP_CIPHER_RC5_32_12_16_CFB64                    49
 #define HB_EVP_CIPHER_RC5_32_12_16_CFB                      50
 #define HB_EVP_CIPHER_RC5_32_12_16_OFB                      51
+#define HB_EVP_CIPHER_AES_128_GCM                           99
 #define HB_EVP_CIPHER_AES_128_ECB                           52
 #define HB_EVP_CIPHER_AES_128_CBC                           53
 #define HB_EVP_CIPHER_AES_128_CFB1                          54
@@ -247,6 +248,7 @@
 #define HB_EVP_CIPHER_AES_128_CFB128                        56
 #define HB_EVP_CIPHER_AES_128_CFB                           57
 #define HB_EVP_CIPHER_AES_128_OFB                           58
+#define HB_EVP_CIPHER_AES_192_GCM                           100
 #define HB_EVP_CIPHER_AES_192_ECB                           59
 #define HB_EVP_CIPHER_AES_192_CBC                           60
 #define HB_EVP_CIPHER_AES_192_CFB1                          61
@@ -255,6 +257,7 @@
 #define HB_EVP_CIPHER_AES_192_CFB                           64
 #define HB_EVP_CIPHER_AES_192_OFB                           65
 #define HB_EVP_CIPHER_AES_256_ECB                           66
+#define HB_EVP_CIPHER_AES_256_GCM                           101  /* highest */
 #define HB_EVP_CIPHER_AES_256_CBC                           67
 #define HB_EVP_CIPHER_AES_256_CFB1                          68
 #define HB_EVP_CIPHER_AES_256_CFB8                          69

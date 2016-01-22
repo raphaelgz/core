@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Command line and environment argument management
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -207,7 +205,7 @@ void hb_winmainArgVBuild( void )
                because in console apps the name may be truncated
                in some cases, and in GUI apps it's not filled
                at all. [vszakats] */
-      if( GetModuleFileName( NULL, lpArgV[ 0 ], nModuleName ) != 0 )
+      if( GetModuleFileName( NULL, lpArgV[ 0 ], ( DWORD ) nModuleName ) != 0 )
       {
          /* Windows XP does not set trailing 0 if buffer is not large enough [druzus] */
          lpArgV[ 0 ][ nModuleName - 1 ] = 0;
@@ -421,7 +419,7 @@ void hb_cmdargUpdate( void )
                   hb_strncat( s_szAppName, pFName->szPath, HB_PATH_MAX - 1 );
                   pFName->szPath = hb_strdup( s_szAppName );
                   hb_fsFNameMerge( s_szAppName, pFName );
-                  hb_xfree( ( void * ) pFName->szPath );
+                  hb_xfree( HB_UNCONST( pFName->szPath ) );
                   s_argv[ 0 ] = s_szAppName;
                }
             }
@@ -742,6 +740,22 @@ HB_FUNC( HB_ARGSHIFT )
    }
 }
 
+HB_FUNC( HB_ACMDLINE )
+{
+   if( s_argc > 1 )
+   {
+      int iPos, iLen = s_argc - 1;
+      PHB_ITEM pArray = hb_itemArrayNew( iLen );
+
+      for( iPos = 1; iPos <= iLen; ++iPos )
+         hb_arraySetCPtr( pArray, iPos, hb_cmdargDup( iPos ) );
+
+      hb_itemReturnRelease( pArray );
+   }
+   else
+      hb_reta( 0 );
+}
+
 HB_FUNC( HB_CMDLINE )
 {
    if( s_argc > 1 )
@@ -794,7 +808,7 @@ HB_FUNC( HB_CMDLINE )
          *--ptr = '\0';
 
          /* Convert from OS codepage */
-         hb_retc_buffer( ( char * ) hb_osDecodeCP( pszBuffer, NULL, NULL ) );
+         hb_retc_buffer( ( char * ) HB_UNCONST( hb_osDecodeCP( pszBuffer, NULL, NULL ) ) );
       }
    }
    else
@@ -845,6 +859,14 @@ void hb_cmdargProcess( void )
             DosSetMaxFH( iHandles );
          #elif defined( HB_OS_DOS )
             _grow_handles( iHandles );
+         #endif
+      #endif
+   }
+   else if( iHandles < 0 )
+   {
+      #if defined( __WATCOMC__ )
+         #if defined( HB_OS_OS2 )
+            DosSetMaxFH( 256 );
          #endif
       #endif
    }

@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for file management functions
  *
  * Copyright 1999 David G. Holm <dholm@jsd-llc.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -103,6 +101,7 @@
 #define FO_CREAT           0x0100      /* create and open file */
 #define FO_TRUNC           0x0200      /* open with truncation */
 #define FO_EXCL            0x0400      /* create and open only if file doesn't exist */
+#define FO_DEFAULTS        0x1000      /* Use SET command defaults */
 
 /* File sharing flags */
 #define FO_COMPAT          0           /* No sharing specified                               */
@@ -127,10 +126,24 @@
 /* File system error codes */
 #define F_ERROR            ( -1 )      /* Unspecified error */
 
+/* hb_FLock() extended file locking flags */
+#define HB_FLX_EXCLUSIVE   0x0000      /* Exclusive lock */
+#define HB_FLX_SHARED      0x0100      /* Shared lock */
+#define HB_FLX_NO_WAIT     0x0000      /* Do not wait for successful lock */
+#define HB_FLX_WAIT        0x0200      /* Wait for lock until success */
+
 /* hb_DiskSpace() types */
 #define HB_DISK_AVAIL      0
 #define HB_DISK_FREE       1
 #define HB_DISK_USED       2
 #define HB_DISK_TOTAL      3
+
+/* hb_vfConfig() settings */
+#define HB_VF_TIMEOUT      1
+#define HB_VF_PORT         2
+#define HB_VF_EOF          3
+#define HB_VF_SHUTDOWN     4
+#define HB_VF_RDHANDLE     5
+#define HB_VF_WRHANDLE     6
 
 #endif /* _FILEIO_CH */

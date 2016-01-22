@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for the RDD API
  *
  * Copyright 1999 {list of individual authors and e-mail addresses}
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -125,6 +123,8 @@ HB_EXTERN_BEGIN
 
 #define DBTF_MATCH         0x0001
 #define DBTF_PUTREC        0x0002
+#define DBTF_CPYCTR        0x0004
+#define DBTF_RECALL        0x0008
 
 
 
@@ -1207,6 +1207,9 @@ extern HB_EXPORT HB_ERRCODE   hb_rddCreateTableTemp(
                                  const char * szAlias,
                                  const char * szCpId, HB_ULONG ulConnection,
                                  PHB_ITEM pStruct );
+extern HB_EXPORT HB_ERRCODE   hb_dbTransCounters( LPDBTRANSINFO lpdbTransInfo );
+extern HB_EXPORT PHB_ITEM     hb_dbTransInfoPut( PHB_ITEM pItem, LPDBTRANSINFO lpdbTransInfo );
+extern HB_EXPORT LPDBTRANSINFO hb_dbTransInfoGet( PHB_ITEM pItem );
 extern HB_EXPORT HB_ERRCODE   hb_dbTransStruct(
                                  AREAP lpaSource, AREAP lpaDest,
                                  LPDBTRANSINFO lpdbTransInfo,
@@ -1229,7 +1232,7 @@ extern HB_EXPORT HB_ERRCODE   hb_rddEvalWA( PHB_ITEM pBlock );
 
 extern HB_EXPORT HB_ERRCODE   hb_rddDetachArea( AREAP pArea, PHB_ITEM pCargo );
 extern HB_EXPORT AREAP        hb_rddRequestArea( const char * szAlias, PHB_ITEM pCargo,
-                                                 HB_BOOL fNewArea, HB_BOOL fWait );
+                                                 HB_BOOL fNewArea, HB_ULONG ulMilliSec );
 extern HB_EXPORT PHB_ITEM     hb_rddDetachedList( void );
 
 typedef HB_ERRCODE ( * WACALLBACK )( AREAP, void * );

@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Harbour common string functions (accessed from standalone utilities and the RTL)
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 1999 David G. Holm <dholm@jsd-llc.com>
  *    hb_stricmp()
@@ -98,6 +95,33 @@ HB_SIZE hb_strAt( const char * szSub, HB_SIZE nSubLen, const char * szText, HB_S
                   return nPos + 1;
             }
             while( szText[ nPos + nSubPos ] == szSub[ nSubPos ] );
+         }
+      }
+      while( nPos++ < nLen );
+   }
+
+   return 0;
+}
+
+HB_SIZE hb_strAtI( const char * szSub, HB_SIZE nSubLen, const char * szText, HB_SIZE nLen )
+{
+   HB_TRACE( HB_TR_DEBUG, ( "hb_strAt(%s, %" HB_PFS "u, %s, %" HB_PFS "u)", szSub, nSubLen, szText, nLen ) );
+
+   if( nSubLen > 0 && nLen >= nSubLen )
+   {
+      HB_SIZE nPos = 0;
+      nLen -= nSubLen;
+      do
+      {
+         if( HB_TOUPPER( szText[ nPos ] ) == HB_TOUPPER( *szSub ) )
+         {
+            HB_SIZE nSubPos = nSubLen;
+            do
+            {
+               if( --nSubPos == 0 )
+                  return nPos + 1;
+            }
+            while( HB_TOUPPER( szText[ nPos + nSubPos ] ) == HB_TOUPPER( szSub[ nSubPos ] ) );
          }
       }
       while( nPos++ < nLen );
@@ -310,7 +334,7 @@ char * hb_xstrcat( char * szDest, const char * szSrc, ... )
 /*
    AJ: 2004-02-23
    Concatenates multiple strings into a single result.
-   Eg. hb_xstrcpy (buffer, "A", "B", NULL) stores "AB" in buffer.
+   Eg. hb_xstrcpy( buffer, "A", "B", NULL ) stores "AB" in buffer.
    Returns szDest.
    Any existing contents of szDest are cleared. If the szDest buffer is NULL,
    allocates a new buffer with the required length and returns that. The

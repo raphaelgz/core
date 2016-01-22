@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *   I/O driver for TCP streams
+ * I/O driver for TCP streams
  *
  * Copyright 2014 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -51,6 +49,7 @@
 
 #include "hbapi.h"
 #include "hbapifs.h"
+#include "hbapiitm.h"
 #include "hbapierr.h"
 #include "hbinit.h"
 
@@ -62,13 +61,13 @@
 typedef struct _HB_FILE
 {
    const HB_FILE_FUNCS * pFuncs;
-   HB_SOCKET             sd;
+   PHB_SOCKEX            sock;
    HB_BOOL               fEof;
-   int                   timeout;
+   HB_MAXINT             timeout;
 }
 HB_FILE;
 
-static PHB_FILE s_fileNew( HB_SOCKET sd, int timeout );
+static PHB_FILE s_fileNew( PHB_SOCKEX sock, HB_MAXINT timeout );
 
 static HB_BOOL s_fileAccept( PHB_FILE_FUNCS pFuncs, const char * pszFileName )
 {
@@ -78,7 +77,7 @@ static HB_BOOL s_fileAccept( PHB_FILE_FUNCS pFuncs, const char * pszFileName )
 }
 
 static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
-                            const char * pszDefExt, HB_USHORT uiExFlags,
+                            const char * pszDefExt, HB_FATTR nExFlags,
                             const char * pPaths, PHB_ITEM pError )
 {
    const char * pszHost = pszName + FILE_PREFIX_LEN, * ptr;
@@ -86,7 +85,7 @@ static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
    HB_ERRCODE errcode = 0;
    HB_SIZE nLen = 0;
    int iPort = 0;
-   int timeout = -1;
+   HB_MAXINT timeout = -1;
 
    HB_SYMBOL_UNUSED( pFuncs );
    HB_SYMBOL_UNUSED( pszDefExt );
@@ -114,6 +113,8 @@ static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
    {
       char * pszAddr, * pszIpAddr;
 
+      hb_socketAutoInit();
+
       pszAddr = hb_strndup( pszHost, nLen );
       pszIpAddr = hb_socketResolveAddr( pszAddr, HB_SOCKET_AF_INET );
       hb_xfree( pszAddr );
@@ -131,7 +132,9 @@ static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
                hb_socketSetKeepAlive( sd, HB_TRUE );
                if( hb_socketConnect( sd, pSockAddr, uiLen, timeout ) == 0 )
                {
-                  switch( uiExFlags & 0x3 )
+                  PHB_SOCKEX sock;
+
+                  switch( nExFlags & ( FO_READ | FO_WRITE | FO_READWRITE ) )
                   {
                      case FO_READ:
                         hb_socketShutdown( sd, HB_SOCKET_SHUT_WR );
@@ -140,8 +143,14 @@ static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
                         hb_socketShutdown( sd, HB_SOCKET_SHUT_RD );
                         break;
                   }
-                  pFile = s_fileNew( sd, timeout );
-                  sd = HB_NO_SOCKET;
+                  sock = hb_sockexNew( sd, NULL, NULL );
+                  if( sock )
+                  {
+                     hb_sockexSetShutDown( sock, HB_TRUE );
+                     hb_sockexSetAutoFlush( sock, HB_TRUE );
+                     pFile = s_fileNew( sock, timeout );
+                     sd = HB_NO_SOCKET;
+                  }
                }
                hb_xfree( pSockAddr );
             }
@@ -176,7 +185,7 @@ static PHB_FILE s_fileOpen( PHB_FILE_FUNCS pFuncs, const char * pszName,
 
 static void s_fileClose( PHB_FILE pFile )
 {
-   hb_socketClose( pFile->sd );
+   hb_sockexClose( pFile->sock, HB_TRUE );
    hb_fsSetError( hb_socketGetError() );
    hb_xfree( pFile );
 }
@@ -192,7 +201,7 @@ static HB_SIZE s_fileRead( PHB_FILE pFile, void * data,
       lRead = nSize > LONG_MAX ? LONG_MAX : ( long ) nSize;
       if( timeout == -1 )
          timeout = pFile->timeout;
-      lRead = hb_socketRecv( pFile->sd, data, lRead, 0, timeout );
+      lRead = hb_sockexRead( pFile->sock, data, lRead, timeout );
 
       errcode = hb_socketGetError();
 
@@ -219,17 +228,28 @@ static HB_SIZE s_fileRead( PHB_FILE pFile, void * data,
 static HB_SIZE s_fileWrite( PHB_FILE pFile, const void * data,
                             HB_SIZE nSize, HB_MAXINT timeout )
 {
-   long lSend = nSize > LONG_MAX ? LONG_MAX : ( long ) nSize;
+   long lSent = nSize > LONG_MAX ? LONG_MAX : ( long ) nSize;
+   HB_ERRCODE errcode;
 
    if( timeout == -1 )
       timeout = pFile->timeout;
-   lSend = hb_socketSend( pFile->sd, data, lSend, 0, timeout );
-   hb_fsSetError( hb_socketGetError() );
+   lSent = hb_sockexWrite( pFile->sock, data, lSent, timeout );
+   errcode = hb_socketGetError();
+   hb_fsSetError( errcode );
 
-   if( lSend < 0 )
-      lSend = 0;
+   if( lSent < 0 )
+   {
+      switch( errcode )
+      {
+         case HB_SOCKET_ERR_TIMEOUT:
+         case HB_SOCKET_ERR_AGAIN:
+         case HB_SOCKET_ERR_TRYAGAIN:
+            lSent = 0;
+            break;
+      }
+   }
 
-   return lSend;
+   return lSent;
 }
 
 static HB_BOOL s_fileEof( PHB_FILE pFile )
@@ -238,18 +258,60 @@ static HB_BOOL s_fileEof( PHB_FILE pFile )
    return pFile->fEof;
 }
 
+static void s_fileFlush( PHB_FILE pFile, HB_BOOL fDirty )
+{
+   HB_SYMBOL_UNUSED( fDirty );
+
+   hb_sockexFlush( pFile->sock, pFile->timeout, HB_FALSE );
+}
+
 static HB_BOOL s_fileConfigure( PHB_FILE pFile, int iIndex, PHB_ITEM pValue )
 {
-   HB_SYMBOL_UNUSED( pFile );
-   HB_SYMBOL_UNUSED( iIndex );
-   HB_SYMBOL_UNUSED( pValue );
+   switch( iIndex )
+   {
+      case HB_VF_TIMEOUT:
+      {
+         HB_MAXINT timeout = pFile->timeout;
+
+         if( HB_IS_NUMERIC( pValue ) )
+            pFile->timeout = hb_itemGetNInt( pValue );
+         hb_itemPutNInt( pValue, timeout );
+         return HB_TRUE;
+      }
+      case HB_VF_SHUTDOWN:
+      {
+         HB_SOCKET sd = hb_sockexGetHandle( pFile->sock );
+
+         if( HB_IS_NUMERIC( pValue ) && sd != HB_NO_SOCKET )
+         {
+            switch( hb_itemGetNI( pValue ) )
+            {
+               case FO_READ:
+                  hb_socketShutdown( sd, HB_SOCKET_SHUT_RD );
+                  break;
+               case FO_WRITE:
+                  hb_socketShutdown( sd, HB_SOCKET_SHUT_WR );
+                  break;
+               case FO_READWRITE:
+                  hb_socketShutdown( sd, HB_SOCKET_SHUT_RDWR );
+                  break;
+            }
+         }
+         hb_itemClear( pValue );
+         return HB_TRUE;
+      }
+      case HB_VF_RDHANDLE:
+      case HB_VF_WRHANDLE:
+         hb_itemPutNInt( pValue, ( HB_NHANDLE ) hb_sockexGetHandle( pFile->sock ) );
+         return HB_TRUE;
+   }
 
    return HB_FALSE;
 }
 
 static HB_FHANDLE s_fileHandle( PHB_FILE pFile )
 {
-   return ( HB_FHANDLE ) ( pFile ? pFile->sd : HB_NO_SOCKET );
+   return ( HB_FHANDLE ) ( pFile ? hb_sockexGetHandle( pFile->sock ) : HB_NO_SOCKET );
 }
 
 static HB_FILE_FUNCS s_fileFuncs =
@@ -288,25 +350,42 @@ static HB_FILE_FUNCS s_fileFuncs =
    NULL, /* s_fileSeek */
    NULL, /* s_fileSize */
    s_fileEof,
-   NULL, /* s_fileFlush */
+   s_fileFlush,
    NULL, /* s_fileCommit */
    s_fileConfigure,
    s_fileHandle
 };
 
-static PHB_FILE s_fileNew( HB_SOCKET sd, int timeout )
+static PHB_FILE s_fileNew( PHB_SOCKEX sock, HB_MAXINT timeout )
 {
    PHB_FILE pFile = ( PHB_FILE ) hb_xgrab( sizeof( HB_FILE ) );
 
    pFile->pFuncs  = &s_fileFuncs;
-   pFile->sd      = sd;
+   pFile->sock    = sock;
    pFile->fEof    = HB_FALSE;
    pFile->timeout = timeout;
 
    return pFile;
 }
 
-HB_FUNC( HB_TCPIO ) { ; }
+static PHB_FILE hb_fileFromSocket( PHB_SOCKEX sock, HB_MAXINT timeout )
+{
+   return sock && hb_sockexGetHandle( sock ) != HB_NO_SOCKET ? s_fileNew( sock, timeout ) : NULL;
+}
+
+HB_FUNC( HB_VFFROMSOCKET )
+{
+   PHB_SOCKEX sock = hb_sockexParam( 1 );
+   PHB_FILE pFile = hb_fileFromSocket( sock, hb_parnintdef( 2, -1 ) );
+
+   if( pFile )
+   {
+      hb_sockexItemClear( hb_param( 1, HB_IT_POINTER ) );
+      hb_fileItemPut( hb_param( -1, HB_IT_ANY ), pFile );
+   }
+}
+
+HB_FUNC( HB_TCPIO ) {}
 
 
 HB_CALL_ON_STARTUP_BEGIN( _hb_file_tcpio_init_ )

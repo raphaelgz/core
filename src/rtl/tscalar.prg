@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Harbour implementation of Class(y) Scalar classes
  *
  * Copyright 2004 Antonio Linares <alinares@fivetechsoft.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -178,7 +176,7 @@ METHOD Copy() CLASS Array
 
 METHOD DeleteAt( n ) CLASS Array
 
-   IF n > 0 .AND. n <= Len( Self )
+   IF n >= 1 .AND. n <= Len( Self )
       hb_ADel( Self, n, .T. )
    ENDIF
 
@@ -189,7 +187,7 @@ METHOD InsertAt( n, x ) CLASS Array
    IF n > Len( Self )
       ASize( Self, n )
       Self[ n ] := x
-   ELSEIF n > 0
+   ELSEIF n >= 1
       hb_AIns( Self, n, x, .T. )
    ENDIF
 

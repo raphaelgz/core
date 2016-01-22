@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * hb_sprintf() function.
  *
  * Copyright 2008 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -166,7 +164,7 @@
 #     define _x_long_dbl      long double
 #     if defined( HB_NO_MODFL ) || \
          defined( __WATCOMC__ ) || defined( __MINGW32CE__ ) || defined( HB_OS_CYGWIN ) || \
-         defined( HB_OS_BEOS ) || defined( HB_OS_IPHONE ) || defined( HB_OS_SYMBIAN ) || \
+         defined( HB_OS_BEOS ) || defined( HB_OS_SYMBIAN ) || \
          defined( __OpenBSD__ ) || defined( __NetBSD__ ) || defined( __DragonFly__ ) || \
          defined( __TINYC__ ) || \
          ( defined( __FreeBSD_version ) && __FreeBSD_version < 603000 ) || \
@@ -765,11 +763,10 @@ static size_t put_wstr( char *buffer, size_t bufsize, size_t size,
                         const _x_wstr wstr, int flags, int width,
                         int precision )
 {
+   const _x_wchar wstr_null[] = { '(', 'n', 'u', 'l', 'l', ')', 0 };
+
    if( ! wstr )
-   {
-      const _x_wchar wstr_null[] = { '(', 'n', 'u', 'l', 'l', ')', 0 };
       wstr = wstr_null;
-   }
 
    if( precision < 0 )
    {

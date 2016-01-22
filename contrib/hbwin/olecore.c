@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * OLE library
  *
  * Copyright 2000, 2003 Jose F. Gimenez (JFG) <jfgimenez@wanadoo.es>
  * Copyright 2008, 2009 Mindaugas Kavaliauskas <dbtopas at dbtopas.lt>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -87,6 +85,7 @@ typedef struct
 typedef struct
 {
    HRESULT lOleError;
+   HB_BOOL fNullDate;
    int     iInit;
 } HB_OLEDATA, * PHB_OLEDATA;
 
@@ -132,10 +131,20 @@ void hb_oleSetError( HRESULT lOleError )
    hb_getOleData()->lOleError = lOleError;
 }
 
-
 HRESULT hb_oleGetError( void )
 {
    return hb_getOleData()->lOleError;
+}
+
+
+static void hb_oleSetNullDateFlag( HB_BOOL fNullDate )
+{
+   hb_getOleData()->fNullDate = fNullDate;
+}
+
+static HB_BOOL hb_oleGetNullDateFlag( void )
+{
+   return hb_getOleData()->fNullDate;
 }
 
 
@@ -605,25 +614,54 @@ static void hb_oleItemToVariantRef( VARIANT * pVariant, PHB_ITEM pItem,
          break;
 
       case HB_IT_DATE:
-         V_VT( pVariant ) = VT_DATE;
-         V_R8( pVariant ) = ( double ) ( hb_itemGetDL( pItem ) - HB_OLE_DATE_BASE );
-         if( pVarRef )
+      {
+         long lDate = hb_itemGetDL( pItem );
+
+         if( lDate == 0 && hb_oleGetNullDateFlag() )
          {
-            V_VT( pVarRef ) = VT_DATE | VT_BYREF;
-            V_R8REF( pVarRef ) = &V_R8( pVariant );
+            V_VT( pVariant ) = VT_NULL;
+            if( pVarRef )
+            {
+               V_VT( pVarRef ) = VT_VARIANT | VT_BYREF;
+               V_VARIANTREF( pVarRef ) = pVariant;
+            }
+         }
+         else
+         {
+            V_VT( pVariant ) = VT_DATE;
+            V_R8( pVariant ) = ( double ) ( lDate - HB_OLE_DATE_BASE );
+            if( pVarRef )
+            {
+               V_VT( pVarRef ) = VT_DATE | VT_BYREF;
+               V_R8REF( pVarRef ) = &V_R8( pVariant );
+            }
          }
          break;
-
+      }
       case HB_IT_TIMESTAMP:
-         V_VT( pVariant ) = VT_DATE;
-         V_R8( pVariant ) = hb_itemGetTD( pItem ) - HB_OLE_DATE_BASE;
-         if( pVarRef )
+      {
+         double dDate = hb_itemGetTD( pItem );
+         if( dDate == 0 && hb_oleGetNullDateFlag() )
          {
-            V_VT( pVarRef ) = VT_DATE | VT_BYREF;
-            V_R8REF( pVarRef ) = &V_R8( pVariant );
+            V_VT( pVariant ) = VT_NULL;
+            if( pVarRef )
+            {
+               V_VT( pVarRef ) = VT_VARIANT | VT_BYREF;
+               V_VARIANTREF( pVarRef ) = pVariant;
+            }
+         }
+         else
+         {
+            V_VT( pVariant ) = VT_DATE;
+            V_R8( pVariant ) = dDate - HB_OLE_DATE_BASE;
+            if( pVarRef )
+            {
+               V_VT( pVarRef ) = VT_DATE | VT_BYREF;
+               V_R8REF( pVarRef ) = &V_R8( pVariant );
+            }
          }
          break;
-
+      }
       case HB_IT_POINTER:
       {
          IDispatch * pDisp;
@@ -1659,6 +1697,9 @@ HB_FUNC( WIN_OLEERROR )
 }
 
 
+#ifndef DISP_E_BUFFERTOOSMALL
+   #define DISP_E_BUFFERTOOSMALL    0x80020013L
+#endif
 HB_FUNC( WIN_OLEERRORTEXT )
 {
    HRESULT lOleError;
@@ -2327,6 +2368,13 @@ HB_FUNC( __OLEVARIANTNEW )
       hb_errRT_OLE( EG_ARG, 1018, 0, NULL, HB_ERR_FUNCNAME, NULL );
 }
 
+/* __oleVariantNullDate( [<lNewNullFlag>] ) -> <lPrevNullFlag> */
+HB_FUNC( __OLEVARIANTNULLDATE )
+{
+   hb_retl( hb_oleGetNullDateFlag() );
+   if( HB_ISLOG( 1 ) )
+      hb_oleSetNullDateFlag( hb_parl( 1 ) );
+}
 
 HB_CALL_ON_STARTUP_BEGIN( _hb_olecore_init_ )
    hb_vmAtInit( hb_olecore_init, NULL );

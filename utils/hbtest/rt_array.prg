@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Regression tests for the runtime library (array)
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -208,8 +206,15 @@ PROCEDURE Main_ARRAY()
 #endif
    HBTEST Array( 1 )                      IS "{.[1].}"
    HBTEST Array( -1 )                     IS "E 2 BASE 1131 Bound error (array dimension) OS:0 #:0 "
+#ifdef __HARBOUR__
+   /* disable Harbour extended optimizations to test correct RTE message */
+   #pragma -ko-
+#endif
    HBTEST Array( 1, 0, -10 )              IS "E 2 BASE 1131 Bound error (array dimension) OS:0 #:0 "
    HBTEST Array( 1, 0, "A" )              IS NIL
+#ifdef __HARBOUR__
+   #pragma -ko+
+#endif
    HBTEST Array( 1, 0, 2 )                IS "{.[1].}"
    HBTEST Array( 4, 3, 2 )                IS "{.[4].}"
    HBTEST Array( 0, 3, 2 )                IS "{.[0].}"
@@ -289,20 +294,20 @@ PROCEDURE Main_ARRAY()
       sorting algorithms. Anyhow the results pattern should match.
       [vszakats] */
 #ifdef __HARBOUR__
-   HBTEST TAStr( ASort( TARRv(),,, {|| NIL } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| hb_SToD() } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "0" } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "1" } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "2" } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "a" } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "A" } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "" } ) )  IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| "z" } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| .T. } ) ) IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| .F. } ) ) IS "FEIDGCHBJA"
-   HBTEST TAStr( ASort( TARRv(),,, {|| 2 } ) )   IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| 1 } ) )   IS "DCBAEFIHGJ"
-   HBTEST TAStr( ASort( TARRv(),,, {|| 0 } ) )   IS "FEIDGCHBJA"
+   HBTEST TAStr( ASort( TARRv(),,, {|| NIL } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| hb_SToD() } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "0" } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "1" } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "2" } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "a" } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "A" } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "" } ) )  IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| "z" } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| .T. } ) ) IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| .F. } ) ) IS "JIHGFEDCBA"
+   HBTEST TAStr( ASort( TARRv(),,, {|| 2 } ) )   IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| 1 } ) )   IS "ABCDEFGHIJ"
+   HBTEST TAStr( ASort( TARRv(),,, {|| 0 } ) )   IS "JIHGFEDCBA"
 #else
    HBTEST TAStr( ASort( TARRv(),,, {|| NIL } ) ) IS "IHGFEDCBAJ"
    HBTEST TAStr( ASort( TARRv(),,, {|| hb_SToD() } ) ) IS "IHGFEDCBAJ"

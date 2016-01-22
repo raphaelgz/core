@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * OpenSSL API (RAND) - Harbour interface.
  *
  * Copyright 2009 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -47,7 +45,6 @@
  */
 
 #include "hbapi.h"
-#include "hbapierr.h"
 
 #include "hbssl.h"
 
@@ -73,7 +70,7 @@ HB_FUNC( RAND_EVENT )
 #if defined( HB_OS_WIN ) && ! defined( __CYGWIN__ )
    hb_retni( RAND_event( hb_parni( 1 ), ( WPARAM ) hb_parnint( 2 ), ( LPARAM ) hb_parnint( 3 ) ) );
 #else
-   hb_retni( 0 );
+   hb_retni( 1 );
 #endif
 }
 

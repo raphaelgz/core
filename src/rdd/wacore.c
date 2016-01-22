@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * Default RDD module
  *
  * Copyright 1999 Bruno Cantero <bruno@issnet.net>
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -572,7 +570,7 @@ HB_ERRCODE hb_rddDetachArea( AREAP pArea, PHB_ITEM pCargo )
 }
 
 AREAP hb_rddRequestArea( const char * szAlias, PHB_ITEM pCargo,
-                         HB_BOOL fNewArea, HB_BOOL fWait )
+                         HB_BOOL fNewArea, HB_ULONG ulMilliSec )
 {
    PHB_DYNS pSymAlias = NULL;
    AREAP pArea = NULL;
@@ -642,14 +640,18 @@ AREAP hb_rddRequestArea( const char * szAlias, PHB_ITEM pCargo,
          }
       }
 
-      if( pArea || ! fWait )
+      if( pArea || ulMilliSec == 0 )
          break;
 
       hb_vmUnlock();
       /* wait for detached workareas */
-      hb_threadCondWait( &s_waCond, &s_waMtx );
+      if( ulMilliSec == HB_THREAD_INFINITE_WAIT )
+         hb_threadCondWait( &s_waCond, &s_waMtx );
+      else if( ! hb_threadCondTimedWait( &s_waCond, &s_waMtx, ulMilliSec ) )
+         ulMilliSec = 0;
       hb_vmLock();
-      if( hb_vmRequestQuery() != 0 )
+
+      if( ulMilliSec == 0 || hb_vmRequestQuery() != 0 )
          break;
    }
    /* leave critical section */

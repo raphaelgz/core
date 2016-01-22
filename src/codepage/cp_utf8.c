@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    example of Harbour codepage using UTF8 encoding
+ * example of Harbour codepage using UTF8 encoding
  *
  * Copyright 2011 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://www.harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -229,8 +227,8 @@ static HB_CDP_CMP_FUNC( UTF8_cmpi )
 
    while( nLen-- )
    {
-      HB_UCHAR u1 = cdp->upper[ ( HB_UCHAR ) * szFirst++ ],
-               u2 = cdp->upper[ ( HB_UCHAR ) * szSecond++ ];
+      HB_UCHAR u1 = cdp->upper[ ( HB_UCHAR ) *szFirst++ ],
+               u2 = cdp->upper[ ( HB_UCHAR ) *szSecond++ ];
       if( u1 != u2 )
       {
          iRet = ( u1 < u2 ) ? -1 : 1;

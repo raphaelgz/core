@@ -4,7 +4,7 @@ include $(TOP)$(ROOT)config/global.mk
 
 ifneq ($(HB_PLATFORM),wce)
    ifneq ($(HB_COMPILER),pcc)
-      HB_PRGFLAGS := -gc3
+      HB_PRGFLAGS += -gc3
    endif
 endif
 
@@ -75,6 +75,7 @@ C_SOURCES := \
    hbascii.c \
    hbbffnc.c \
    hbbfish.c \
+   hbbfsock.c \
    hbbit.c \
    hbbyte.c \
    hbcom.c \
@@ -117,6 +118,7 @@ C_SOURCES := \
    hbzlibc.c \
    hbzlibgz.c \
    hbznet.c \
+   hbzsock.c \
    idle.c \
    inkey.c \
    inkeyapi.c \
@@ -143,19 +145,19 @@ C_SOURCES := \
    natmsg.c \
    natmsgu.c \
    net.c \
+   netusr.c \
    oemansi.c \
    oldbox.c \
    oldclear.c \
    pad.c \
-   padc.c \
-   padl.c \
-   padr.c \
+   padx.c \
    philes.c \
    philes53.c \
    rat.c \
    replic.c \
    right.c \
    round.c \
+   rtlshort.c \
    run.c \
    samples.c \
    saverest.c \
@@ -184,6 +186,7 @@ C_SOURCES := \
    strrepl.c \
    strtoexp.c \
    strtran.c \
+   strutf8.c \
    strxor.c \
    strzero.c \
    stuff.c \

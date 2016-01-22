@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for the Harbour Compiler
  *
  * Copyright 1999 Antonio Linares <alinares@fivetechsoft.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -60,11 +58,6 @@
 
 HB_EXTERN_BEGIN
 
-/* definitions for hb_compPCodeEval() support */
-typedef void * PHB_VOID;
-#define HB_PCODE_FUNC( func, type ) HB_SIZE func( PHB_HFUNC pFunc, HB_SIZE nPCodePos, type cargo )
-typedef HB_PCODE_FUNC( ( * PHB_PCODE_FUNC ), PHB_VOID );
-
 extern HB_ISIZ hb_compPCodeSize( PHB_HFUNC, HB_SIZE );
 extern void hb_compPCodeEval( PHB_HFUNC, const PHB_PCODE_FUNC *, void * );
 extern void hb_compPCodeTrace( PHB_HFUNC, const PHB_PCODE_FUNC *, void * );
@@ -72,9 +65,7 @@ extern void hb_compPCodeTrace( PHB_HFUNC, const PHB_PCODE_FUNC *, void * );
 extern void hb_compGenLabelTable( PHB_HFUNC pFunc, PHB_LABEL_INFO label_info );
 extern PHB_DEBUGINFO hb_compGetDebugInfo( HB_COMP_DECL );
 
-extern void hb_compChkFileSwitches( int argc, char * argv[] );
-
-extern void hb_compInitPP( HB_COMP_DECL, int argc, const char * const argv[], PHB_PP_OPEN_FUNC pOpenFunc );
+extern void hb_compInitPP( HB_COMP_DECL, PHB_PP_OPEN_FUNC pOpenFunc );
 extern void hb_compCompileEnd( HB_COMP_DECL );
 
 extern int  hb_comp_yyparse( HB_COMP_DECL );
@@ -135,7 +126,7 @@ extern               void         hb_compFunctionMarkStatic( HB_COMP_DECL, const
 extern HB_EXPORT_INT const char * hb_compGetFuncID( const char * szFuncName, HB_FUNC_ID * pFunID, int * piFlags );
 extern               HB_BOOL      hb_compFunCallCheck( HB_COMP_DECL, const char *, int );
 
-extern PHB_VARTYPE hb_compVarTypeNew( HB_COMP_DECL, char cVarType, const char * szFromClass );
+extern PHB_VARTYPE hb_compVarTypeNew( HB_COMP_DECL, HB_BYTE cVarType, const char * szFromClass );
 extern void hb_compVariableAdd( HB_COMP_DECL, const char * szVarName, PHB_VARTYPE pVarType ); /* add a new param, local, static variable to a function definition or a public or private */
 extern PHB_HVAR hb_compVariableFind( HB_COMP_DECL, const char * szVarName, int * piPos, int * piScope );
 extern const char * hb_compLocalVariableName( PHB_HFUNC pFunc, HB_USHORT wVar );   /* returns the name of local variable */
@@ -294,9 +285,10 @@ extern void hb_compCodeBlockRewind( HB_COMP_DECL );                     /* resta
 extern HB_SIZE hb_compExprListEval( HB_COMP_DECL, PHB_EXPR pExpr, PHB_COMP_CARGO_FUNC pEval );
 extern HB_SIZE hb_compExprListEval2( HB_COMP_DECL, PHB_EXPR pExpr1, PHB_EXPR pExpr2, PHB_COMP_CARGO2_FUNC pEval );
 
-extern void hb_compChkCompilerSwitch( HB_COMP_DECL, int iArg, const char * const args[] );
-extern void hb_compChkPaths( HB_COMP_DECL );
-extern void hb_compChkDefines( HB_COMP_DECL, int iArg, const char * const args[] );
+extern void hb_compChkCommandLine( HB_COMP_DECL, int argc, const char * const argv[] );
+extern void hb_compChkEnvironment( HB_COMP_DECL );
+extern void hb_compChkAddIncPaths( HB_COMP_DECL );
+extern void hb_compChkSetDefines( HB_COMP_DECL );
 
 extern void hb_compPrintUsage( HB_COMP_DECL, const char * szSelf );
 extern void hb_compPrintCredits( HB_COMP_DECL );

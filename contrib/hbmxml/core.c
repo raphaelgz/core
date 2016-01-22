@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    MINIXML functions wrapper
+ * MINIXML functions wrapper
  *
  * Copyright 2010-2011 Petr Chornyj <myorg63@mail.ru>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -736,7 +734,6 @@ static mxml_type_t type_cb( mxml_node_t * node )
 
 HB_FUNC( MXMLLOADFILE )
 {
-   void * hFree;
    mxml_node_t *  node_top;
    mxml_node_t *  node;
    mxml_load_cb_t cb   = MXML_NO_CALLBACK;
@@ -775,7 +772,7 @@ HB_FUNC( MXMLLOADFILE )
       }
    }
 
-   file = hb_fopen( hb_parstr_utf8( 2, &hFree, NULL ), "rb" );
+   file = hb_fopen( hb_parc( 2 ), "rb" );
    if( file )
    {
       node = mxmlLoadFile( node_top, file, cb );
@@ -786,7 +783,6 @@ HB_FUNC( MXMLLOADFILE )
    }
 
    pCbs->type_cb = NULL;
-   hb_strfree( hFree );
 }
 
 /*
@@ -1135,7 +1131,6 @@ static void sax_cb( mxml_node_t * node, mxml_sax_event_t event, void * data )
 
 HB_FUNC( MXMLSAXLOADFILE )
 {
-   void * hFree;
    mxml_node_t *  node_top;
    mxml_node_t *  node;
    mxml_load_cb_t cb     = MXML_NO_CALLBACK;
@@ -1182,7 +1177,7 @@ HB_FUNC( MXMLSAXLOADFILE )
       cb_sax       = sax_cb;
    }
 
-   file = hb_fopen( hb_parstr_utf8( 2, &hFree, NULL ), "rb" );
+   file = hb_fopen( hb_parc( 2 ), "rb" );
    if( file )
    {
       node = mxmlSAXLoadFile( node_top, file, cb, cb_sax, pData );
@@ -1194,8 +1189,6 @@ HB_FUNC( MXMLSAXLOADFILE )
 
    pCbs->type_cb = NULL;
    pCbs->sax_cb  = NULL;
-
-   hb_strfree( hFree );
 }
 
 /*
@@ -1357,7 +1350,6 @@ HB_FUNC( MXMLSAVEFILE )
 {
    mxml_node_t * node = mxml_node_param( 1 );
    FILE *        file;
-   void *        hFree;
 
    if( node && HB_ISCHAR( 2 ) )
    {
@@ -1370,7 +1362,7 @@ HB_FUNC( MXMLSAVEFILE )
          cb = save_cb;
       }
 
-      file = hb_fopen( hb_parstr_utf8( 2, &hFree, NULL ), "wb" );
+      file = hb_fopen( hb_parc( 2 ), "wb" );
       if( file )
       {
          hb_retni( mxmlSaveFile( node, file, cb ) );
@@ -1383,7 +1375,6 @@ HB_FUNC( MXMLSAVEFILE )
          hb_strfree( pCbs->hText );
          pCbs->hText = NULL;
       }
-      hb_strfree( hFree );
    }
    else
       MXML_ERR_ARGS;
@@ -1648,7 +1639,7 @@ HB_FUNC( MXMLGETCUSTOM )
 
    if( node )
    {
-      PHB_ITEM pItem = ( PHB_ITEM ) mxmlGetCustom( node );
+      PHB_ITEM pItem = ( PHB_ITEM ) HB_UNCONST( mxmlGetCustom( node ) );
 
       if( pItem )
          hb_itemReturn( pItem );

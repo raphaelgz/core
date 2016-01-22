@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    definitions shared by compiler and macro compiler
+ * definitions shared by compiler and macro compiler
  *
  * Copyright 2006 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -121,7 +119,7 @@ typedef struct HB_CBVAR_
 typedef struct _HB_VARTYPE
 {
    struct _HB_VARTYPE *   pNext;
-   char                   cVarType;
+   HB_BYTE                cVarType;
    const char *           szFromClass;
 } HB_VARTYPE, * PHB_VARTYPE;
 
@@ -248,6 +246,7 @@ typedef enum
    HB_F_UDF = 0,
    HB_F_AADD,
    HB_F_ABS,
+   HB_F_ARRAY,
    HB_F_ASC,
    HB_F_AT,
    HB_F_BOF,
@@ -533,6 +532,14 @@ typedef struct _HB_HFUNC
    HB_USHORT         wWithObjectCnt;
 } HB_HFUNC, * PHB_HFUNC;
 
+/* structure to hold PP #define variables passed as command line parameters */
+typedef struct _HB_PPDEFINE
+{
+   char * szName;                         /* name of PP #define variable */
+   const char * szValue;                  /* value of PP #define variable */
+   struct _HB_PPDEFINE * pNext;           /* pointer to the next var */
+} HB_PPDEFINE, * PHB_PPDEFINE;
+
 /* structure to hold an INLINE block of source */
 typedef struct _HB_HINLINE
 {
@@ -601,6 +608,11 @@ typedef struct _HB_MODULE
    struct _HB_MODULE *  pNext;
 } HB_MODULE, * PHB_MODULE;
 
+/* definitions for hb_compPCodeEval() support */
+typedef void * PHB_VOID;
+#define HB_PCODE_FUNC( func, type ) HB_SIZE func( PHB_HFUNC pFunc, HB_SIZE nPCodePos, type cargo )
+typedef HB_PCODE_FUNC( ( * PHB_PCODE_FUNC ), PHB_VOID );
+
 typedef struct _HB_DEBUGINFO
 {
    char *    pszModuleName;
@@ -620,6 +632,7 @@ typedef struct _HB_LABEL_INFO
    HB_BOOL   fEndRequest;
    int       iNestedBlock;
    HB_SIZE * pnLabels;
+   const PHB_PCODE_FUNC * pFuncTable;
 } HB_LABEL_INFO, * PHB_LABEL_INFO;
 
 #define HB_MODE_COMPILER      1
@@ -749,6 +762,7 @@ typedef struct _HB_COMP
    PHB_MODULE        modules;
    PHB_VARTYPE       pVarType;
    PHB_INCLST        incfiles;
+   PHB_PPDEFINE      ppdefines;
 
    PHB_HDECLARED     pFirstDeclared;
    PHB_HDECLARED     pLastDeclared;
@@ -782,14 +796,12 @@ typedef struct _HB_COMP
    const char *      szAnnounce;
    const char *      szDeclaredFun;
    const char *      szFile;              /* Source file name of compiled module */
-   char              szPrefix[ 20 ];      /* holds the prefix added to the generated symbol init function name (in C output currently) */
    char *            szDepExt;            /* destination file extension used in decencies list */
    char *            szStdCh;             /* standard definitions file name (-u) */
    char **           szStdChExt;          /* extended definitions file names (-u+<file>) */
    int               iStdChExt;           /* number of extended definition files (-u+<file>) */
 
-   char              cDataListType;       /* current declared variable list type */
-   char              cCastType;           /* current casting type */
+   HB_BYTE           cDataListType;       /* current declared variable list type */
 
    int               iErrorCount;
    int               iModulesCount;       /* number of compiled .prg modules */
@@ -808,6 +820,7 @@ typedef struct _HB_COMP
    int               iErrorFmt;           /* error message formatting mode (default: Clipper) */
 
    HB_BOOL           fQuiet;              /* be quiet during compilation (-q) */
+   HB_BOOL           fGauge;              /* hide line counter gauge (-ql) */
    HB_BOOL           fFullQuiet;          /* be quiet during compilation disable all messages */
    HB_BOOL           fExit;               /* force breaking compilation process */
    HB_BOOL           fPPO;                /* flag indicating, is ppo output needed */
@@ -817,6 +830,7 @@ typedef struct _HB_COMP
    HB_BOOL           fAutoMemvarAssume;   /* holds if undeclared variables are automatically assumed MEMVAR (-a)*/
    HB_BOOL           fForceMemvars;       /* holds if memvars are assumed when accesing undeclared variable (-v)*/
    HB_BOOL           fDebugInfo;          /* holds if generate debugger required info */
+   HB_BOOL           fHideSource;         /* do not embed original source filename into generated source code */
    HB_BOOL           fNoStartUp;          /* C code generation embed HB_FS_FIRST or not */
    HB_BOOL           fCredits;            /* print credits */
    HB_BOOL           fBuildInfo;          /* print build info */
@@ -833,6 +847,7 @@ typedef struct _HB_COMP
 typedef struct
 {
    HB_BOOL  fDebugInfo;
+   HB_BOOL  fHideSource;
    HB_BOOL  fAutoMemvarAssume;
    HB_BOOL  fI18n;
    HB_BOOL  fLineNumbers;
@@ -842,6 +857,7 @@ typedef struct
    HB_BOOL  fForceMemvars;
    int      iStartProc;
    int      iWarnings;
+   int      iGenCOutput;
    int      iExitLevel;
    int      iHidden;
    int      supported;
@@ -850,7 +866,7 @@ typedef struct
 extern PHB_COMP hb_comp_new( void );
 extern void hb_comp_free( PHB_COMP );
 
-#endif /* ! HB_MACRO_SUPPORT  */
+#endif /* ! HB_MACRO_SUPPORT */
 
 typedef struct _HB_COMP_FUNCS
 {

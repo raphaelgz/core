@@ -1,6 +1,5 @@
 /*
  * Copyright 2010 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  */
 
 HBNETIO is implementation of alternative RDD IO API for Harbour with
@@ -77,6 +76,10 @@ Client side functions:
       <cFullName> should not contain "net:" prefix.
 
 
+   netio_TimeOut( <pConnection> [, <nTimeOut>] ) -> [<nTimeOut>]
+      Get/Set client side timeout for messages
+
+
    netio_ProcExists( [<pConnection>,] <cProcName> ) -> <lExists>
       Check if function or procedure exists on the server side.
 
@@ -140,6 +143,7 @@ Server side functions:
                    [<cPass>], [<nCompressionLevel>], [<nStrategy>] ) -> NIL
    netio_VerifyClient( <pConnectionSocket> ) -> <lAccepted>
    netio_Server( <pConnectionSocket> ) -> NIL
+   netio_ServedConnection() -> <pConnectionSocket>
    netio_RPC( <pListenSocket> | <pConnectionSocket> [, <lEnable>] ) -> <lPrev>
    netio_RPCFilter( <pConnectionSocket>,
                     <sFuncSym> | <hValue> | NIL ) -> NIL

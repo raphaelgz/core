@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    .prg interface to preprocessor
+ * .prg interface to preprocessor
  *
  * Copyright 2006 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -169,7 +167,7 @@ HB_FUNC( __PP_INIT )
       *pStatePtr = pState;
       ppItem = hb_itemPutPtrGC( NULL, ( void * ) pStatePtr );
 
-      hb_pp_init( pState, HB_TRUE, 0, NULL, NULL, NULL,
+      hb_pp_init( pState, HB_TRUE, HB_FALSE, 0, NULL, NULL, NULL,
                   hb_pp_ErrorMessage, hb_pp_Disp, NULL, NULL,
                   hb_pp_CompilerSwitch );
 

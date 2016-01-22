@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Base-routines for OOPS system
  *
  * Copyright 1999 Antonio Linares <alinares@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 1999 Eddie Runia <eddie@runia.com>
  *    :CLASSSEL()
@@ -469,8 +466,7 @@ static HB_BOOL hb_clsDictRealloc( PCLASS pClass )
          hb_errInternal( 6002, "Unable to realloc class message in __clsDictRealloc()", NULL, NULL );
 
 #ifdef HB_MSG_POOL
-      puiMsgIdx = ( HB_USHORT * ) hb_xgrab( ( nNewHashKey << BUCKETBITS ) * sizeof( HB_USHORT ) );
-      memset( puiMsgIdx, 0, ( nNewHashKey << BUCKETBITS ) * sizeof( HB_USHORT ) );
+      puiMsgIdx = ( HB_USHORT * ) hb_xgrabz( ( nNewHashKey << BUCKETBITS ) * sizeof( HB_USHORT ) );
 
       for( n = 0; n < nLimit; n++ )
       {
@@ -508,8 +504,7 @@ static HB_BOOL hb_clsDictRealloc( PCLASS pClass )
 
 #else
 
-      pNewMethods = ( PMETHOD ) hb_xgrab( ( nNewHashKey << BUCKETBITS ) * sizeof( METHOD ) );
-      memset( pNewMethods, 0, ( nNewHashKey << BUCKETBITS ) * sizeof( METHOD ) );
+      pNewMethods = ( PMETHOD ) hb_xgrabz( ( nNewHashKey << BUCKETBITS ) * sizeof( METHOD ) );
 
       for( n = 0; n < nLimit; n++ )
       {
@@ -559,16 +554,13 @@ static void hb_clsDictInit( PCLASS pClass, HB_USHORT uiHashKey )
    pClass->uiHashKey = uiHashKey;
 #ifdef HB_MSG_POOL
    nSize = ( ( ( HB_SIZE ) uiHashKey + 1 ) << BUCKETBITS ) * sizeof( HB_USHORT );
-   pClass->puiMsgIdx = ( HB_USHORT * ) hb_xgrab( nSize );
-   memset( pClass->puiMsgIdx, 0, nSize );
+   pClass->puiMsgIdx = ( HB_USHORT * ) hb_xgrabz( nSize );
 
    pClass->uiMethodCount = 1;
-   pClass->pMethods = ( PMETHOD ) hb_xgrab( sizeof( METHOD ) );
-   memset( pClass->pMethods, 0, sizeof( METHOD ) );
+   pClass->pMethods = ( PMETHOD ) hb_xgrabz( sizeof( METHOD ) );
 #else
    nSize = ( ( ( HB_SIZE ) uiHashKey + 1 ) << BUCKETBITS ) * sizeof( METHOD );
-   pClass->pMethods = ( PMETHOD ) hb_xgrab( nSize );
-   memset( pClass->pMethods, 0, nSize );
+   pClass->pMethods = ( PMETHOD ) hb_xgrabz( nSize );
 #endif
 }
 
@@ -1577,15 +1569,15 @@ HB_SIZE hb_clsGetVarIndex( HB_USHORT uiClass, PHB_DYNS pVarSym )
       return 0;
 }
 
-HB_USHORT hb_clsFindClass( const char * szClass, const char * szFunc )
+HB_USHORT hb_clsFindClass( const char * szClass, const char * szClassFunc )
 {
    HB_USHORT uiClass;
 
    for( uiClass = 1; uiClass <= s_uiClasses; uiClass++ )
    {
       if( strcmp( szClass, s_pClasses[ uiClass ]->szName ) == 0 &&
-          ( ! szFunc || ( ! s_pClasses[ uiClass ]->pClassFuncSym ? ! *szFunc :
-            strcmp( szFunc, s_pClasses[ uiClass ]->pClassFuncSym->szName ) == 0 ) ) )
+          ( ! szClassFunc || ( ! s_pClasses[ uiClass ]->pClassFuncSym ? ! *szClassFunc :
+            strcmp( szClassFunc, s_pClasses[ uiClass ]->pClassFuncSym->szName ) == 0 ) ) )
       {
          return uiClass;
       }
@@ -2375,8 +2367,7 @@ static void hb_objSuperDestructorCall( PHB_ITEM pObject, PCLASS pClass )
    char * pcClasses;
    HB_USHORT uiClass;
 
-   pcClasses = ( char * ) hb_xgrab( ( HB_SIZE ) s_uiClasses + 1 );
-   memset( pcClasses, 0, s_uiClasses + 1 );
+   pcClasses = ( char * ) hb_xgrabz( ( HB_SIZE ) s_uiClasses + 1 );
 
    do
    {
@@ -2689,15 +2680,25 @@ static PHB_SYMB hb_objGetFuncSym( PHB_ITEM pItem )
 }
 
 /* clone object if user defined clone method or copy it */
-void hb_objCloneTo( PHB_ITEM pDest, PHB_ITEM pSource, PHB_NESTED_CLONED pClonedList )
+void hb_objCloneBody( PHB_ITEM pDest, PHB_ITEM pObject, PHB_NESTED_CLONED pClonedList )
 {
-   HB_TRACE( HB_TR_DEBUG, ( "hb_objCloneTo(%p,%p,%p)", pDest, pSource, pClonedList ) );
+   HB_TRACE( HB_TR_DEBUG, ( "hb_objCloneBody(%p,%p,%p)", pDest, pObject, pClonedList ) );
 
    HB_SYMBOL_UNUSED( pClonedList );
 
    /* TODO: add support for user defined clone operation */
 
-   hb_itemCopy( pDest, pSource );
+   hb_itemCopy( pDest, pObject );
+}
+
+/* clone object if user defined clone method or copy it */
+PHB_ITEM hb_objCloneTo( PHB_ITEM pDest, PHB_ITEM pObject )
+{
+   HB_TRACE( HB_TR_DEBUG, ( "hb_objCloneTo(%p,%p)", pDest, pObject ) );
+
+   hb_objCloneBody( pDest, pObject, NULL );
+
+   return pDest;
 }
 
 /* send message which allows to set execution context for debugger */
@@ -3449,8 +3450,7 @@ static HB_USHORT hb_clsNew( const char * szClassName, HB_USHORT uiDatas,
    uiSuper  = ( HB_USHORT ) ( pSuperArray ? hb_arrayLen( pSuperArray ) : 0 );
    pClassFunc = hb_vmGetRealFuncSym( pClassFunc );
 
-   pNewCls = ( PCLASS ) hb_xgrab( sizeof( CLASS ) );
-   memset( pNewCls, 0, sizeof( CLASS ) );
+   pNewCls = ( PCLASS ) hb_xgrabz( sizeof( CLASS ) );
 
    HB_CLASS_LOCK();
 
@@ -5166,8 +5166,7 @@ static PHB_ITEM hb_objGetIVars( PHB_ITEM pObject,
    pClass = s_pClasses[ uiClass ];
    nLen = nCount = hb_arrayLen( pObject );
    nSize = 0;
-   pIndex = ( PHB_IVARINFO ) hb_xgrab( nLen * sizeof( HB_IVARINFO ) );
-   memset( pIndex, 0, nLen * sizeof( HB_IVARINFO ) );
+   pIndex = nLen ? ( PHB_IVARINFO ) hb_xgrabz( nLen * sizeof( HB_IVARINFO ) ) : NULL;
 
    if( fChanged && pClass->uiInitDatas )
    {
@@ -5278,7 +5277,8 @@ static PHB_ITEM hb_objGetIVars( PHB_ITEM pObject,
       }
    }
 
-   hb_xfree( pIndex );
+   if( pIndex )
+      hb_xfree( pIndex );
 
    return pReturn;
 }
@@ -5412,7 +5412,6 @@ HB_FUNC( __OBJRESTOREIVARS )
  * if second parameter <lAllExported> is true and message has corresponding
  * assign message (with "_" prefix)
  */
-
 HB_FUNC( __CLSGETPROPERTIES )
 {
    HB_USHORT uiClass = ( HB_USHORT ) hb_parni( 1 );

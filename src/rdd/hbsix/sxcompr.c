@@ -1,6 +1,5 @@
 /*
- * Harbour Project source code:
- *    SIX compatible functions:
+ * SIX compatible functions:
  *          hb_LZSSxCompressMem()
  *          hb_LZSSxDecompressMem()
  *          hb_LZSSxCompressFile()
@@ -12,7 +11,6 @@
  *          _SX_STRCOMPRESS
  *
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +25,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -62,7 +60,7 @@
    original bytes from input string instead of position and match length in
    the ring buffer when the match length does not reach some limit. In SIX
    the minimum match length is 3 and it is used to increase to match length
-   in 4 bit offset by adding 3 also so the efective maximum match length is
+   in 4 bit offset by adding 3 also so the effective maximum match length is
    18. Of course we have to store the information about the type of item in
    compressed data to know it is (offset+length) pair or simple byte.
    SIX put 1 byte in compressed data which inform about the type of next
@@ -207,7 +205,7 @@ static void hb_LZSSxExit( PHB_LZSSX_COMPR pCompr )
 }
 
 static PHB_LZSSX_COMPR hb_LZSSxInit(
-                        PHB_FILE pInput, HB_BYTE * pSrcBuf, HB_SIZE nSrcBuf,
+                        PHB_FILE pInput, const HB_BYTE * pSrcBuf, HB_SIZE nSrcBuf,
                         PHB_FILE pOutput, HB_BYTE * pDstBuf, HB_SIZE nDstBuf )
 {
    PHB_LZSSX_COMPR pCompr = ( PHB_LZSSX_COMPR ) hb_xgrab( sizeof( HB_LZSSX_COMPR ) );
@@ -218,7 +216,7 @@ static PHB_LZSSX_COMPR hb_LZSSxInit(
       nDstBuf = LZSS_IOBUFLEN;
 
    pCompr->pInput      = pInput;
-   pCompr->inBuffer    = pSrcBuf;
+   pCompr->inBuffer    = ( HB_BYTE * ) HB_UNCONST( pSrcBuf );
    pCompr->inBuffSize  = nSrcBuf;
    pCompr->inBuffPos   = 0;
    pCompr->inBuffRead  = ( pInput == NULL ) ? nSrcBuf : 0;
@@ -289,6 +287,8 @@ static int hb_LZSSxRead( PHB_LZSSX_COMPR pCompr )
    {
       pCompr->inBuffRead = hb_fileRead( pCompr->pInput, pCompr->inBuffer,
                                         pCompr->inBuffSize, -1 );
+      if( pCompr->inBuffRead == ( HB_SIZE ) FS_ERROR )
+         pCompr->inBuffRead = 0;
       pCompr->inBuffPos = 0;
       if( pCompr->inBuffPos < pCompr->inBuffRead )
          return ( HB_UCHAR ) pCompr->inBuffer[ pCompr->inBuffPos++ ];
@@ -563,7 +563,7 @@ HB_BOOL hb_LZSSxCompressMem( const char * pSrcBuf, HB_SIZE nSrcLen,
    PHB_LZSSX_COMPR pCompr;
    HB_SIZE nSize;
 
-   pCompr = hb_LZSSxInit( NULL, ( HB_BYTE * ) pSrcBuf, nSrcLen,
+   pCompr = hb_LZSSxInit( NULL, ( const HB_BYTE * ) pSrcBuf, nSrcLen,
                           NULL, ( HB_BYTE * ) pDstBuf, nDstLen );
    nSize = hb_LZSSxEncode( pCompr );
    hb_LZSSxExit( pCompr );
@@ -578,7 +578,7 @@ HB_BOOL hb_LZSSxDecompressMem( const char * pSrcBuf, HB_SIZE nSrcLen,
    PHB_LZSSX_COMPR pCompr;
    HB_BOOL fResult;
 
-   pCompr = hb_LZSSxInit( NULL, ( HB_BYTE * ) pSrcBuf, nSrcLen,
+   pCompr = hb_LZSSxInit( NULL, ( const HB_BYTE * ) pSrcBuf, nSrcLen,
                           NULL, ( HB_BYTE * ) pDstBuf, nDstLen );
    fResult = hb_LZSSxDecode( pCompr );
    hb_LZSSxExit( pCompr );

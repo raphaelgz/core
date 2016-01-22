@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Compiler Expression Optimizer
  *
  * Copyright 1999 Ryszard Glab
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -430,8 +428,30 @@ static HB_EXPR_FUNC( hb_compExprUseCodeblock )
    switch( iMessage )
    {
       case HB_EA_REDUCE:
+      {
+         PHB_EXPR pExpr = pSelf->value.asCodeblock.pExprList;
+
+         if( pExpr && pExpr->pNext == NULL && pExpr->ExprType == HB_ET_FUNCALL &&
+             pExpr->value.asFunCall.pFunName->ExprType == HB_ET_FUNNAME &&
+             pExpr->value.asFunCall.pFunName->value.asSymbol.funcid == HB_F_BREAK &&
+             pSelf->value.asCodeblock.pLocals != NULL )
+         {
+            PHB_EXPR pParms = pExpr->value.asFunCall.pParms;
+            if( hb_compExprParamListLen( pParms ) == 1 &&
+                pParms->value.asList.pExprList->ExprType == HB_ET_VARIABLE &&
+                strcmp( pSelf->value.asCodeblock.pLocals->szName,
+                        pParms->value.asList.pExprList->value.asSymbol.name ) == 0 )
+            {
+               HB_COMP_EXPR_FREE( pSelf );
+               pSelf = HB_COMP_EXPR_NEW( HB_ET_FUNCALL );
+               pSelf->value.asFunCall.pParms = NULL;
+               pSelf->value.asFunCall.pFunName = hb_compExprNewFunName( "__BREAKBLOCK", HB_COMP_PARAM );
+               break;
+            }
+         }
          pSelf->value.asCodeblock.flags |= HB_BLOCK_REDUCE;
          break;
+      }
       case HB_EA_ARRAY_AT:
          HB_COMP_ERROR_TYPE( pSelf );
          break;
@@ -1922,12 +1942,13 @@ static HB_EXPR_FUNC( hb_compExprUseFunCall )
                   case HB_F_I18N_NGETTEXT_NOOP:
                   case HB_F_I18N_NGETTEXT_STRICT:
                   {
-                     PHB_EXPR     pArg = pParms->value.asList.pExprList,
-                                  pCount = NULL, pBadParam = NULL;
+                     PHB_EXPR     pCount = NULL, pBadParam = NULL, pArg;
                      int          iWarning = 0;
                      const char * szExpect = NULL;
                      const char * szContext = NULL;
                      HB_BOOL      fStrict, fNoop, fPlural;
+
+                     pArg = usCount ? pParms->value.asList.pExprList : NULL;
 
                      fStrict = funcID == HB_F_I18N_GETTEXT_STRICT ||
                                funcID == HB_F_I18N_NGETTEXT_STRICT;
@@ -2108,17 +2129,33 @@ static HB_EXPR_FUNC( hb_compExprUseFunCall )
          HB_BOOL fArgsList = HB_FALSE;
          HB_USHORT usCount = 0;
 
+         /* NOTE: pParms will be NULL in 'DO procname' (if there is
+          * no WITH keyword)
+          */
+         if( pSelf->value.asFunCall.pParms )
+         {
+            usCount = ( HB_USHORT ) hb_compExprParamListCheck( HB_COMP_PARAM, pSelf->value.asFunCall.pParms );
+            fArgsList = pSelf->value.asFunCall.pParms->ExprType == HB_ET_MACROARGLIST;
+         }
+
          if( pSelf->value.asFunCall.pFunName->ExprType == HB_ET_FUNNAME )
          {
-            if( pSelf->value.asFunCall.pFunName->value.asSymbol.funcid == HB_F_ARRAYTOPARAMS )
+            if( ! fArgsList )
             {
-               usCount = ( HB_USHORT ) hb_compExprParamListCheck( HB_COMP_PARAM, pSelf->value.asFunCall.pParms );
-               if( usCount == 1 &&
-                   ( pSelf->value.asFunCall.pFunName->value.asSymbol.flags & HB_FN_MULTIARG ) != 0 &&
-                   pSelf->value.asFunCall.pParms->ExprType != HB_ET_MACROARGLIST )
+               if( pSelf->value.asFunCall.pFunName->value.asSymbol.funcid == HB_F_ARRAYTOPARAMS &&
+                   usCount == 1 &&
+                   ( pSelf->value.asFunCall.pFunName->value.asSymbol.flags & HB_FN_MULTIARG ) != 0 )
                {
                   HB_EXPR_USE( pSelf->value.asFunCall.pParms, HB_EA_PUSH_PCODE );
                   HB_GEN_FUNC1( PCode1, HB_P_PUSHAPARAMS );
+                  break;
+               }
+               else if( pSelf->value.asFunCall.pFunName->value.asSymbol.funcid == HB_F_ARRAY &&
+                        HB_SUPPORT_EXTOPT )
+               {
+                  if( usCount )
+                     HB_EXPR_USE( pSelf->value.asFunCall.pParms, HB_EA_PUSH_PCODE );
+                  HB_GEN_FUNC3( PCode3, HB_P_ARRAYDIM, HB_LOBYTE( usCount ), HB_HIBYTE( usCount ) );
                   break;
                }
             }
@@ -2131,16 +2168,8 @@ static HB_EXPR_FUNC( hb_compExprUseFunCall )
             HB_GEN_FUNC1( PCode1, HB_P_PUSHNIL );
          }
 
-         /* NOTE: pParms will be NULL in 'DO procname' (if there is
-          * no WITH keyword)
-          */
-         if( pSelf->value.asFunCall.pParms )
-         {
-            usCount = ( HB_USHORT ) hb_compExprParamListCheck( HB_COMP_PARAM, pSelf->value.asFunCall.pParms );
-            fArgsList = pSelf->value.asFunCall.pParms->ExprType == HB_ET_MACROARGLIST;
-            if( usCount )
-               HB_EXPR_USE( pSelf->value.asFunCall.pParms, HB_EA_PUSH_PCODE );
-         }
+         if( usCount )
+            HB_EXPR_USE( pSelf->value.asFunCall.pParms, HB_EA_PUSH_PCODE );
 
          if( fArgsList )
          {
@@ -2572,7 +2601,7 @@ static HB_EXPR_FUNC( hb_compExprUseSetGet )
          if( ! HB_SUPPORT_HARBOUR )
             pSelf->value.asSetGet.pVar = hb_compExprListStrip( pSelf->value.asSetGet.pVar, HB_COMP_PARAM );
 #endif
-         HB_EXPR_USE( pSelf->value.asSetGet.pVar, HB_EA_LVALUE );
+         HB_EXPR_USE( pSelf->value.asSetGet.pExpr, HB_EA_LVALUE );
          break;
       case HB_EA_ARRAY_AT:
       case HB_EA_ARRAY_INDEX:
@@ -4532,9 +4561,9 @@ static HB_BOOL hb_compExprCodeblockPush( PHB_EXPR pSelf, int iEarlyEvalPass, HB_
          pExpr->value.asMacro.SubType |= HB_ET_MACRO_PARE;
       }
 
-      /* store next expression in case the current  will be reduced
+      /* store next expression in case the current will be reduced
        * NOTE: During reduction the expression can be replaced by the
-       *    new one - this will break the linked list of expressions.
+       *       new one - this will break the linked list of expressions.
        */
       pNext = pExpr->pNext; /* store next expression in case the current will be reduced */
       if( ( pSelf->value.asCodeblock.flags & HB_BLOCK_REDUCE ) != 0 ||

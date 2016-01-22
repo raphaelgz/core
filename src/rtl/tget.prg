@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * Get Class
  *
  * Copyright 2007-2008 Viktor Szakats (vszakats.net/harbour)
  * Copyright 1999 Ignacio Ortiz de Zuniga <ignacio@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -372,8 +370,21 @@ METHOD end() CLASS Get
    LOCAL nFor
 
    IF ::hasFocus
-      nLastCharPos := Min( Len( RTrim( ::cBuffer ) ) + 1, ::nMaxEdit )
-      IF ::nPos != nLastCharPos
+      nLastCharPos := Len( RTrim( ::cBuffer ) ) + 1
+      /* check for spaces before non-template chars */
+      IF nLastCharPos > 2 .AND. ! ::IsEditable( nLastCharPos - 1 )
+         FOR nFor := nLastCharPos - 2 TO ::FirstEditable() STEP -1
+            IF ::IsEditable( nFor )
+               IF Empty( SubStr( ::cBuffer, nFor, 1 ) )
+                  nLastCharPos := nFor
+               ELSE
+                  EXIT
+               ENDIF
+            ENDIF
+         NEXT
+      ENDIF
+      nLastCharPos := Min( nLastCharPos, ::nMaxEdit )
+      IF ::nPos < nLastCharPos .OR. ::nPos == ::LastEditable()
          nPos := nLastCharPos
       ELSE
          nPos := ::nMaxEdit
@@ -985,11 +996,9 @@ METHOD setPos( nPos ) CLASS Get
             ::typeOut := .T.
 
          ENDCASE
-
       ENDIF
 
       RETURN nPos
-
    ENDIF
 
    RETURN 0
@@ -1025,9 +1034,7 @@ METHOD picture( cPicture ) CLASS Get
 
             IF hb_LeftEq( cPicture, "@" )
 
-               nAt := At( " ", cPicture )
-
-               IF nAt == 0
+               IF ( nAt := At( " ", cPicture ) ) == 0
                   ::cPicFunc := hb_asciiUpper( cPicture )
                   ::cPicMask := ""
                ELSE
@@ -1339,7 +1346,7 @@ METHOD unTransform() CLASS Get
                ENDIF
             ENDIF
 
-            xValue := Val( cBuffer )
+            xValue := hb_Val( cBuffer )
 
             EXIT
 
@@ -1377,7 +1384,6 @@ METHOD unTransform() CLASS Get
    RETURN xValue
 
 METHOD type() CLASS Get
-
    RETURN ::cType := ValType( iif( ::hasFocus, ::xVarGet, ::varGet() ) )
 
 /* The METHOD Block and VAR bBlock allow to replace the
@@ -1416,7 +1422,6 @@ METHOD firstEditable() CLASS Get
             RETURN nFor
          ENDIF
       NEXT
-
    ENDIF
 
    RETURN 0
@@ -1432,7 +1437,6 @@ METHOD lastEditable() CLASS Get
             RETURN nFor
          ENDIF
       NEXT
-
    ENDIF
 
    RETURN 0
@@ -1593,9 +1597,8 @@ METHOD backSpaceLow() CLASS Get
 
       /* To delete the parenthesis (negative indicator) in a non editable position */
 
-      nMinus := At( "(", SubStr( ::cBuffer, 1, nPos - 1 ) )
-
-      IF nMinus > 0 .AND. !( SubStr( ::cPicMask, nMinus, 1 ) == "(" )
+      IF ( nMinus := At( "(", Left( ::cBuffer, nPos - 1 ) ) ) > 0 .AND. ;
+         !( SubStr( ::cPicMask, nMinus, 1 ) == "(" )
 
          ::cBuffer := Stuff( ::cBuffer, nMinus, 1, " " )
 
@@ -1652,19 +1655,24 @@ METHOD DeleteAll() CLASS Get
 
       ::lEdit := .T.
 
-      DO CASE
-      CASE ::cType == "C"
+      SWITCH ::cType
+      CASE "C"
          xValue := Space( ::nMaxlen )
-      CASE ::cType == "N"
+         EXIT
+      CASE "N"
          xValue := 0
          ::lMinus2 := .F.
-      CASE ::cType == "D"
+         EXIT
+      CASE "D"
          xValue := hb_SToD()
-      CASE ::cType == "T"
+         EXIT
+      CASE "T"
          xValue := hb_SToT()
-      CASE ::cType == "L"
+         EXIT
+      CASE "L"
          xValue := .F.
-      ENDCASE
+         EXIT
+      ENDSWITCH
 
       ::cBuffer := ::PutMask( xValue )
       ::pos     := ::FirstEditable()
@@ -1688,9 +1696,8 @@ METHOD IsEditable( nPos ) CLASS Get
       RETURN .T.
    ENDIF
 
-   cChar := SubStr( ::cPicMask, nPos, 1 )
-
    IF ::cType != NIL
+      cChar := SubStr( ::cPicMask, nPos, 1 )
       SWITCH ::cType
       CASE "C" ; RETURN hb_asciiUpper( cChar ) $ "!ANX9#LY"
       CASE "N" ; RETURN cChar $ "9#$*"

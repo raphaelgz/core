@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    header file with functions for atomic operations
+ * header file with functions for atomic operations
  *
  * Copyright 2008 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -85,12 +83,18 @@ HB_EXTERN_BEGIN
 
 
 /* Inline assembler version of atomic operations on memory reference counters */
-#if defined( __GNUC__ )
+#if defined( __GNUC__ ) || ( defined( HB_OS_WIN ) && defined( __clang__ ) )
 
 #  if defined( HB_USE_GCCATOMIC_OFF )
 #     undef HB_USE_GCCATOMIC
-#  elif ( ( __GNUC__ > 4 ) || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 1) ) && \
+#  elif defined( HB_OS_OS2 ) && \
+        ( __GNUC__ < 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ <= 5 ) )
+      /* allow users to enable it manually by HB_USE_GCCATOMIC macro */
+      /* #undef HB_USE_GCCATOMIC */
+#  elif ( __GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 1 ) ) && \
         ! defined( __MINGW32CE__ ) && ! defined( HB_USE_GCCATOMIC )
+#     define HB_USE_GCCATOMIC
+#  elif defined( HB_OS_WIN ) && defined( __clang__ )
 #     define HB_USE_GCCATOMIC
 #  endif
 

@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * hb_FSize() function
  *
  * Copyright 2000-2001 Jose Lalin <dezac@corevia.com>
  * Copyright 2000-2001 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -55,7 +53,13 @@
 #include "hbapifs.h"
 #include "hbvm.h"
 
-#if ! defined( HB_OS_WIN_CE )
+#if defined( HB_OS_WIN )
+#  include <windows.h>
+#  include "hbwinuni.h"
+#  if defined( HB_OS_WIN_CE )
+#     include "hbwince.h"
+#  endif
+#else
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #endif
@@ -64,7 +68,7 @@
    #if defined( __USE_LARGEFILE64 )
       /*
        * The macro: __USE_LARGEFILE64 is set when _LARGEFILE64_SOURCE is
-       * define and efectively enables lseek64/flock64/ftruncate64 functions
+       * defined and effectively enables lseek64/flock64/ftruncate64 functions
        * on 32bit machines.
        */
       #define HB_USE_LARGEFILE64
@@ -79,14 +83,52 @@ HB_FOFFSET hb_fsFSize( const char * pszFileName, HB_BOOL bUseDirEntry )
    if( bUseDirEntry )
    {
 #if defined( HB_OS_WIN )
-      PHB_FFIND ffind = hb_fsFindFirst( pszFileName, HB_FA_ALL );
-      hb_fsSetIOError( ffind != NULL, 0 );
-      if( ffind )
+      typedef BOOL ( WINAPI * _HB_GETFILEATTRIBUTESEX )( LPCTSTR, GET_FILEEX_INFO_LEVELS, LPVOID );
+      static _HB_GETFILEATTRIBUTESEX s_pGetFileAttributesEx = ( _HB_GETFILEATTRIBUTESEX ) -1;
+
+      if( s_pGetFileAttributesEx == ( _HB_GETFILEATTRIBUTESEX ) -1 )
       {
-         HB_FOFFSET size = ffind->size;
-         hb_fsFindClose( ffind );
-         return size;
+         HMODULE hModule = GetModuleHandle( TEXT( "kernel32.dll" ) );
+         if( hModule )
+            s_pGetFileAttributesEx = ( _HB_GETFILEATTRIBUTESEX )
+               HB_WINAPI_GETPROCADDRESST( hModule, "GetFileAttributesEx" );
+         else
+            s_pGetFileAttributesEx = NULL;
       }
+
+      if( s_pGetFileAttributesEx )
+      {
+         LPCTSTR lpFileName;
+         LPTSTR lpFree;
+         WIN32_FILE_ATTRIBUTE_DATA attrex;
+         HB_BOOL fResult;
+
+         lpFileName = HB_FSNAMECONV( pszFileName, &lpFree );
+         memset( &attrex, 0, sizeof( attrex ) );
+         fResult = GetFileAttributesEx( lpFileName, GetFileExInfoStandard, &attrex ) &&
+                   ( attrex.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) == 0;
+         hb_fsSetIOError( fResult, 0 );
+         if( lpFree )
+            hb_xfree( lpFree );
+         if( fResult )
+            return ( HB_FOFFSET ) attrex.nFileSizeLow +
+                 ( ( HB_FOFFSET ) attrex.nFileSizeHigh << 32 );
+      }
+      else
+      {
+         PHB_FFIND ffind = hb_fsFindFirst( pszFileName, HB_FA_ALL );
+         hb_fsSetIOError( ffind != NULL, 0 );
+         if( ffind )
+         {
+            HB_FOFFSET size = ffind->size;
+            hb_fsFindClose( ffind );
+            return size;
+         }
+      }
+#elif defined( HB_OS_OS2 )
+      HB_FOFFSET nSize = 0;
+      if( hb_fsOS2QueryPathInfo( pszFileName, &nSize, NULL, NULL, NULL ) )
+         return nSize;
 #elif defined( HB_USE_LARGEFILE64 )
       char * pszFree;
       HB_BOOL fResult;

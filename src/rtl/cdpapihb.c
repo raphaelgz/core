@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * The CodePages API
  *
  * Copyright 2002 Alexander S.Kresin <alex@belacy.belgorod.su>
  * Copyright 2009-2012 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -110,6 +108,26 @@ HB_FUNC( HB_CDPINFO )
    PHB_CODEPAGE cdp = id ? hb_cdpFindExt( id ) : hb_vmCDP();
 
    hb_retc( cdp ? cdp->info : NULL );
+}
+
+HB_FUNC( HB_CDPISCHARIDX )
+{
+   const char * id = hb_parc( 1 );
+   PHB_CODEPAGE cdp = id ? hb_cdpFindExt( id ) : hb_vmCDP();
+   HB_BOOL fResult = HB_FALSE;
+
+   if( cdp )
+   {
+      fResult = HB_CDP_ISCHARIDX( cdp );
+      if( HB_CDP_ISCUSTOM( cdp ) && HB_ISLOG( 2 ) )
+      {
+         if( hb_parl( 2 ) )
+            cdp->type |= HB_CDP_TYPE_CHARIDX;
+         else
+            cdp->type &= ~HB_CDP_TYPE_CHARIDX;
+      }
+   }
+   hb_retl( fResult );
 }
 
 HB_FUNC( HB_CDPCHARMAX )

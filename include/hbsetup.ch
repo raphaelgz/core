@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for runtime configuration, common for Harbour and C level.
  *
  * Copyright 1999-2009 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -52,7 +50,7 @@
 #ifndef HB_SETUP_CH_
 #define HB_SETUP_CH_
 
-/* NOTE: You can fine-tune here, which Clipper features you want to include. */
+/* NOTE: You can fine-tune here, which Cl*pper features you want to include. */
 
 /* #define HB_CLP_STRICT */       /* Enable Cl*pper 5.2e/5.3b strict compatibility */
 #define HB_CLP_UNDOC              /* Enable Cl*pper 5.2e/5.3b undocumented features */

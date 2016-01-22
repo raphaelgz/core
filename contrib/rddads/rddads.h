@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Header file for Advantage Database Server RDD
  *
  * Copyright 1999 Alexander S.Kresin <alex@belacy.belgorod.su>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -68,8 +66,10 @@
 #include "ace.h"
 
 /* Autodetect ACE version. */
-#if   defined( ADS_GET_FORMAT_WEB )
-   #define _ADS_LIB_VERSION  1100 /* or upper */
+#if   defined( ADS_ROOT_DD_ALIAS )
+   #define _ADS_LIB_VERSION  1110 /* or upper */
+#elif defined( ADS_GET_FORMAT_WEB )
+   #define _ADS_LIB_VERSION  1100
 #elif defined( ADS_GET_UTF8 )
    #define _ADS_LIB_VERSION  1010
 #elif defined( ADS_DEFAULT_SQL_TIMEOUT )
@@ -187,6 +187,8 @@ extern HB_BOOL hb_ads_bTestRecLocks;
 extern ADSHANDLE  hb_ads_getConnection( void );
 extern ADSHANDLE  hb_ads_defConnection( ADSHANDLE hConnect, const char * szName );
 extern void       hb_ads_setConnection( ADSHANDLE hConnect );
+extern int        hb_ads_getIndexPageSize( void );
+extern void       hb_ads_setIndexPageSize( int iIndexPageSize );
 
 extern HB_ERRCODE hb_adsCloseCursor( ADSAREAP pArea );
 extern ADSAREAP   hb_adsGetWorkAreaPointer( void );
@@ -210,8 +212,8 @@ extern ADSAREAP   hb_adsGetWorkAreaPointer( void );
                                          UNSIGNED32 * pulLen );
 
 #else
-#  define hb_adsOemToAnsi( s, l )  ( ( char * ) ( s ) )
-#  define hb_adsAnsiToOem( s, l )  ( ( char * ) ( s ) )
+#  define hb_adsOemToAnsi( s, l )  ( ( char * ) HB_UNCONST( s ) )
+#  define hb_adsAnsiToOem( s, l )  ( ( char * ) HB_UNCONST( s ) )
 #  define hb_adsOemAnsiFree( s )
 #endif
 

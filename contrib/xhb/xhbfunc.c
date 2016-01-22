@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
- *    xHarbour compatible wrapper functions
+ * xHarbour compatible wrapper functions
  *
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
  * Copyright 2010 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -49,7 +47,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 2000 David G. Holm <dholm@jsd-llc.com>
  *    hb_F_Eof()
@@ -212,7 +209,7 @@ HB_FUNC( HB_F_EOF )
 HB_FUNC( CURDIRX )
 {
    HB_ERRCODE uiErrorOld = hb_fsError();
-   char *     pbyBuffer  = ( char * ) hb_xgrab( HB_PATH_MAX + 1 );
+   char *     pbyBuffer  = ( char * ) hb_xgrab( HB_PATH_MAX );
    PHB_ITEM   pDrv       = hb_param( 1, HB_IT_STRING );
    int        iCurDrv    = hb_fsCurDrv();
    int        iDrv;

@@ -1,15 +1,12 @@
 /*
- * Harbour Project source code:
  * Alert(), hb_Alert() functions
  *
  * Released to Public Domain by Vladimir Kazimirchik <v_kazimirchik@yahoo.com>
- * www - http://harbour-project.org
  *
  */
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
  *    Changes for higher Clipper compatibility, console mode, extensions
@@ -42,6 +39,7 @@ FUNCTION Alert( cMessage, aOptions, cColorNorm )
    LOCAL cColorHigh
    LOCAL aOptionsOK
    LOCAL cOption
+   LOCAL nPos
 
 #ifdef HB_CLP_UNDOC
 
@@ -61,20 +59,19 @@ FUNCTION Alert( cMessage, aOptions, cColorNorm )
 
    cMessage := StrTran( cMessage, ";", Chr( 10 ) )
 
-   hb_default( @aOptions, {} )
-
    IF ! HB_ISSTRING( cColorNorm ) .OR. Empty( cColorNorm )
-      cColorNorm := "W+/R" // first pair color (Box line and Text)
-      cColorHigh := "W+/B" // second pair color (Options buttons)
+      cColorNorm := "W+/R"  // first pair color (Box line and Text)
+      cColorHigh := "W+/B"  // second pair color (Options buttons)
    ELSE
       cColorNorm := hb_ColorIndex( cColorNorm, CLR_STANDARD )
-      cColorHigh := StrTran( StrTran( ;
-         iif( At( "/", cColorNorm ) == 0, "N", SubStr( cColorNorm, At( "/", cColorNorm ) + 1 ) ) + "/" + ;
-         iif( At( "/", cColorNorm ) == 0, cColorNorm, Left( cColorNorm, At( "/", cColorNorm ) - 1 ) ), "+", "" ), "*", "" )
+      cColorHigh := hb_StrReplace( ;
+         iif( ( nPos := At( "/", cColorNorm ) ) > 0, ;
+            SubStr( cColorNorm, nPos + 1 ) + "/" + Left( cColorNorm, nPos - 1 ), ;
+            "N/" + cColorNorm ), "+*" )
    ENDIF
 
    aOptionsOK := {}
-   FOR EACH cOption IN aOptions
+   FOR EACH cOption IN hb_defaultValue( aOptions, {} )
       IF HB_ISSTRING( cOption ) .AND. ! Empty( cOption )
          AAdd( aOptionsOK, cOption )
       ENDIF
@@ -98,8 +95,8 @@ FUNCTION hb_Alert( xMessage, aOptions, cColorNorm, nDelay )
    LOCAL cMessage
    LOCAL cColorHigh
    LOCAL aOptionsOK
-   LOCAL cOption
-   LOCAL nEval
+   LOCAL cString
+   LOCAL nPos
 
 #ifdef HB_CLP_UNDOC
 
@@ -119,8 +116,8 @@ FUNCTION hb_Alert( xMessage, aOptions, cColorNorm, nDelay )
 
    IF HB_ISARRAY( xMessage )
       cMessage := ""
-      FOR nEval := 1 TO Len( xMessage )
-         cMessage += iif( nEval == 1, "", Chr( 10 ) ) + hb_CStr( xMessage[ nEval ] )
+      FOR EACH cString IN xMessage
+         cMessage += iif( cString:__enumIsFirst(), "", Chr( 10 ) ) + hb_CStr( cString )
       NEXT
    ELSEIF HB_ISSTRING( xMessage )
       cMessage := StrTran( xMessage, ";", Chr( 10 ) )
@@ -128,22 +125,21 @@ FUNCTION hb_Alert( xMessage, aOptions, cColorNorm, nDelay )
       cMessage := hb_CStr( xMessage )
    ENDIF
 
-   hb_default( @aOptions, {} )
-
    IF ! HB_ISSTRING( cColorNorm ) .OR. Empty( cColorNorm )
-      cColorNorm := "W+/R" // first pair color (Box line and Text)
-      cColorHigh := "W+/B" // second pair color (Options buttons)
+      cColorNorm := "W+/R"  // first pair color (Box line and Text)
+      cColorHigh := "W+/B"  // second pair color (Options buttons)
    ELSE
       cColorNorm := hb_ColorIndex( cColorNorm, CLR_STANDARD )
-      cColorHigh := StrTran( StrTran( ;
-         iif( At( "/", cColorNorm ) == 0, "N", SubStr( cColorNorm, At( "/", cColorNorm ) + 1 ) ) + "/" + ;
-         iif( At( "/", cColorNorm ) == 0, cColorNorm, Left( cColorNorm, At( "/", cColorNorm ) - 1 ) ), "+", "" ), "*", "" )
+      cColorHigh := hb_StrReplace( ;
+         iif( ( nPos := At( "/", cColorNorm ) ) > 0, ;
+            SubStr( cColorNorm, nPos + 1 ) + "/" + Left( cColorNorm, nPos - 1 ), ;
+            "N/" + cColorNorm ), "+*" )
    ENDIF
 
    aOptionsOK := {}
-   FOR EACH cOption IN aOptions
-      IF HB_ISSTRING( cOption ) .AND. ! Empty( cOption )
-         AAdd( aOptionsOK, cOption )
+   FOR EACH cString IN hb_defaultValue( aOptions, {} )
+      IF HB_ISSTRING( cString ) .AND. ! Empty( cString )
+         AAdd( aOptionsOK, cString )
       ENDIF
    NEXT
 

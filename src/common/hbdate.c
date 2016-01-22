@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * The Date conversion module
  *
  * Copyright 1999 Antonio Linares <alinares@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 1999-2001 Viktor Szakats (vszakats.net/harbour)
  *    hb_dateEncStr()
@@ -934,7 +931,7 @@ long hb_timeUTCOffset( void ) /* in seconds */
       utc = mktime( gmtime_r( &current, &timeinfo ) );
       local = mktime( localtime_r( &current, &timeinfo ) );
 #else
-      timeinfo = *gmtime( &local );
+      timeinfo = *gmtime( &current );
       utc = mktime( &timeinfo );
       timeinfo = *localtime( &current );
       local = mktime( &timeinfo );
@@ -979,13 +976,15 @@ long hb_timeStampUTCOffset( int iYear, int iMonth, int iDay,
          lt.wDayOfWeek    = 0;
 
          if( s_pTzSpecificLocalTimeToSystemTime( NULL, &lt, &st ) )
-            return ( long ) ( ( hb_timeStampPack( lt.wYear, lt.wMonth, lt.wDay,
-                                                  lt.wHour, lt.wMinute, lt.wSecond,
-                                                  lt.wMilliseconds ) -
-                                hb_timeStampPack( st.wYear, st.wMonth, st.wDay,
-                                                  st.wHour, st.wMinute, st.wSecond,
-                                                  st.wMilliseconds ) ) * HB_SECONDS_PER_DAY +
-                              0.5 );
+         {
+            double dOffset = ( hb_timeStampPack( lt.wYear, lt.wMonth, lt.wDay,
+                                                 lt.wHour, lt.wMinute, lt.wSecond,
+                                                 lt.wMilliseconds ) -
+                               hb_timeStampPack( st.wYear, st.wMonth, st.wDay,
+                                                 st.wHour, st.wMinute, st.wSecond,
+                                                 st.wMilliseconds ) ) * HB_SECONDS_PER_DAY;
+            return ( long ) ( dOffset + ( dOffset < 0 ? -0.5 : 0.5 ) );
+         }
       }
 
       return hb_timeUTCOffset();

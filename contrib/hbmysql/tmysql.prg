@@ -1,10 +1,8 @@
 /*
- * Harbour Project source code:
  * MySQL DBMS classes.
  * These classes try to emulate clipper dbXXXX functions on a SQL query
  *
  * Copyright 2000 Maurilio Longo <maurilio.longo@libero.it>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -1231,7 +1229,7 @@ CREATE CLASS TMySQLServer
    VAR lError                                              // .T. if occurred an error
    VAR cCreateQuery
 
-   METHOD New( cServer, cUser, cPassword, nPort )          // Opens connection to a server, returns a server object
+   METHOD New( cServer, cUser, cPassword, nPort, nFlags )  // Opens connection to a server, returns a server object
    METHOD Destroy()                                        // Closes connection to server
 
    METHOD SelectDB( cDBName )                              // Which data base I will use for subsequent queries
@@ -1259,13 +1257,13 @@ CREATE CLASS TMySQLServer
 ENDCLASS
 
 
-METHOD New( cServer, cUser, cPassword, nPort ) CLASS TMySQLServer
+METHOD New( cServer, cUser, cPassword, nPort, nFlags ) CLASS TMySQLServer
 
    ::cServer := cServer
    ::nPort := nPort
    ::cUser := cUser
    ::cPassword := cPassword
-   ::nSocket := mysql_real_connect( cServer, cUser, cPassword, nPort )
+   ::nSocket := mysql_real_connect( cServer, cUser, cPassword, nPort, nFlags )
    ::lError := .F.
 
    IF Empty( ::nSocket )

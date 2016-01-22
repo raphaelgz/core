@@ -1,9 +1,7 @@
 /*
- * xHarbour Project source code:
- *    HiPer-SEEK / CFTS compatible library
+ * HiPer-SEEK / CFTS compatible library
  *
  * Copyright 2005 Przemyslaw Czerpak <druzus@acn.waw.pl>
- * www - http://www.xharbour.org
  *
  * Credits:
  *    Many thanks for Mindaugas Kavaliauskas for his assistance,
@@ -24,7 +22,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -604,7 +602,7 @@ static int hb_hsxEval( int iHandle, PHB_ITEM pExpr, HB_BYTE * pKey, HB_BOOL * fD
    if( ! pExpr )
       return HSX_BADPARMS;
 
-   if( hb_itemType( pExpr ) & HB_IT_STRING )
+   if( HB_IS_STRING( pExpr ) )
    {
       pStr = hb_itemGetCPtr( pExpr );
       nLen = hb_itemGetCLen( pExpr );
@@ -1231,8 +1229,7 @@ static LPHSXINFO hb_hsxNew( void )
    if( pTable->iHandleSize == 0 )
    {
       pTable->iHandleSize = HSX_HALLOC;
-      pTable->handleArray = ( LPHSXINFO * ) hb_xgrab( sizeof( LPHSXINFO ) * HSX_HALLOC );
-      memset( pTable->handleArray, 0, sizeof( LPHSXINFO ) * pTable->iHandleSize );
+      pTable->handleArray = ( LPHSXINFO * ) hb_xgrabz( sizeof( LPHSXINFO ) * HSX_HALLOC );
    }
    else
    {
@@ -1250,9 +1247,8 @@ static LPHSXINFO hb_hsxNew( void )
          memset( &pTable->handleArray[ iHandle ], 0, sizeof( LPHSXINFO ) * HSX_HALLOC );
       }
    }
-   pTable->handleArray[ iHandle ] = pHSX = ( LPHSXINFO ) hb_xgrab( sizeof( HSXINFO ) );
+   pTable->handleArray[ iHandle ] = pHSX = ( LPHSXINFO ) hb_xgrabz( sizeof( HSXINFO ) );
    pTable->iHandleCount++;
-   memset( pHSX, 0, sizeof( HSXINFO ) );
    pHSX->iHandle = iHandle;
    pHSX->pFile = NULL;
 
@@ -1426,7 +1422,7 @@ static int hb_hsxCreate( const char * szFile, int iBufSize, int iKeySize,
          if( iRetVal != HSX_SUCCESS )
             return iRetVal;
       }
-      else if( hb_itemType( pExpr ) == HB_IT_BLOCK )
+      else if( HB_IS_BLOCK( pExpr ) )
          pKeyExpr = hb_itemNew( pExpr );
    }
 
@@ -1480,7 +1476,6 @@ static int hb_hsxOpen( const char * szFile, int iBufSize, int iMode )
    HB_BOOL fShared, fReadonly;
    PHB_FILE pFile;
    HB_ULONG ulBufSize;
-   HB_USHORT uiFlags;
    LPHSXINFO pHSX;
    int iRetVal, iRet;
 
@@ -1504,11 +1499,11 @@ static int hb_hsxOpen( const char * szFile, int iBufSize, int iMode )
    fShared = ( iMode & 0x01 ) == 0;
    if( hb_setGetAutoShare() == 2 )
       fShared = HB_FALSE;
-   uiFlags = ( fReadonly ? FO_READ : FO_READWRITE ) |
-             ( fShared ? FO_DENYNONE : FO_EXCLUSIVE );
 
    pFile = hb_fileExtOpen( szFileName, HSX_FILEEXT,
-                           uiFlags | FXO_DEFAULTS | FXO_SHARELOCK |
+                           ( fReadonly ? FO_READ : FO_READWRITE ) |
+                           ( fShared ? FO_DENYNONE : FO_EXCLUSIVE ) |
+                           FXO_DEFAULTS | FXO_SHARELOCK |
                            FXO_COPYNAME | FXO_NOSEEKPOS,
                            NULL, NULL );
 
@@ -1625,7 +1620,7 @@ static int hb_hsxFilter( int iHandle, const char * pSeek, HB_SIZE nSeek,
       return HSX_NOTABLE;
    }
 
-   if( ! pVerify || hb_itemType( pVerify ) == HB_IT_NIL )
+   if( ! pVerify || HB_IS_NIL( pVerify ) )
       pVerify = pHSX->pKeyItem;
    else
    {
@@ -1636,7 +1631,7 @@ static int hb_hsxFilter( int iHandle, const char * pSeek, HB_SIZE nSeek,
             return HSX_BADPARMS;
          fDestroyExpr = HB_TRUE;
       }
-      else if( hb_itemType( pVerify ) != HB_IT_BLOCK )
+      else if( ! HB_IS_BLOCK( pVerify ) )
       {
          pVerify = NULL;
       }
@@ -1879,7 +1874,7 @@ HB_FUNC( HS_FILTER )
          }
       }
    }
-   if( iHandle >= 0 && nLen > 0 )
+   if( iHandle >= 0 && nLen > 0 && szText )
    {
       PHB_ITEM pItem = hb_itemNew( NULL );
       AREAP pArea = ( AREAP ) hb_rddGetCurrentWorkAreaPointer();
@@ -2018,11 +2013,11 @@ HB_FUNC( HS_VERIFY )
 /* hs_Version() -> <cVersion> */
 HB_FUNC( HS_VERSION )
 {
-   static const char szVer[] = "HiPer-SEEK / FTS library emulation";
-   char * pszHBVersion, * pszVersion;
+   static const char sc_szVer[] = "HiPer-SEEK / FTS library emulation";
 
-   pszHBVersion = hb_verHarbour();
-   pszVersion = hb_xstrcpy( NULL, szVer, ": ", pszHBVersion, NULL );
+   char * pszHBVersion = hb_verHarbour();
+   char * pszVersion = hb_xstrcpy( NULL, sc_szVer, ": ", pszHBVersion, NULL );
+
    hb_retclen_buffer( pszVersion, strlen( pszVersion ) );
    hb_xfree( pszHBVersion );
 }

@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * The default error handler
  *
  * Copyright 1999 Antonio Linares <alinares@fivetech.com>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -57,7 +55,7 @@ PROCEDURE ErrorSys()
 STATIC FUNCTION DefError( oError )
 
    LOCAL cMessage
-   LOCAL cDOSError
+   LOCAL cOSError
 
    LOCAL aOptions
    LOCAL nChoice
@@ -94,7 +92,7 @@ STATIC FUNCTION DefError( oError )
 
    cMessage := ErrorMessage( oError )
    IF ! Empty( oError:osCode )
-      cDOSError := hb_StrFormat( "(DOS Error %1$d)", oError:osCode )
+      cOSError := hb_StrFormat( "(DOS Error %1$d)", oError:osCode )
    ENDIF
 
    // Build buttons
@@ -113,15 +111,8 @@ STATIC FUNCTION DefError( oError )
 
    // Show alert box
 
-   nChoice := 0
-   DO WHILE nChoice == 0
-
-      IF cDOSError == NIL
-         nChoice := Alert( cMessage, aOptions )
-      ELSE
-         nChoice := Alert( cMessage + ";" + cDOSError, aOptions )
-      ENDIF
-
+   DO WHILE ( nChoice := Alert( cMessage + ;
+      iif( cOSError == NIL, "", ";" + cOSError ), aOptions ) ) == 0
    ENDDO
 
    IF ! Empty( nChoice )
@@ -137,8 +128,8 @@ STATIC FUNCTION DefError( oError )
 
    // "Quit" selected
 
-   IF cDOSError != NIL
-      cMessage += " " + cDOSError
+   IF cOSError != NIL
+      cMessage += " " + cOSError
    ENDIF
 
    OutErr( hb_eol() )
@@ -149,8 +140,8 @@ STATIC FUNCTION DefError( oError )
 
       OutErr( hb_eol() )
       OutErr( hb_StrFormat( "Called from %1$s(%2$d)  ", ;
-         ProcName( n ), ;
-         ProcLine( n ) ) )
+              ProcName( n ), ;
+              ProcLine( n ) ) )
 
    ENDDO
 

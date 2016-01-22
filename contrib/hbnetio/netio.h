@@ -1,13 +1,11 @@
 /*
- * Harbour Project source code:
- *    demonstration code for alternative RDD IO API which uses own
+ * demonstration code for alternative RDD IO API which uses own
  *    very simple TCP/IP file server with RPC support
  *    All files which names starts with 'net:' are redirected to this API.
  *    This is header file used by client and server code with some constant
  *    definitions.
  *
  * Copyright 2009 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +20,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -122,6 +120,7 @@
 #define NETIO_LINKSYM          40
 #define NETIO_LINKREAD         41
 #define NETIO_CONFIGURE        42
+#define NETIO_OPEN2            43
 
 #define NETIO_CONNECTED        0x4321DEAD
 
@@ -143,7 +142,8 @@
 /* { NETIO_LINKSYM,   len[ 2 ], len2[ 2 ], ... } + target[ len ] + newname[ len2 ] -> { NETIO_LINKSYM, ... } */
 /* { NETIO_LINKREAD,  len[ 2 ], ... } + filename[ len ] -> { NETIO_LINKREAD, size[ 4 ], err[ 4 ], ... } + data[ size ] */
 /* { NETIO_COPY,      len[ 2 ], len2[ 2 ], ... } + filename[ len ] + filename[ len2 ] -> { NETIO_COPY, ... } */
-/* { NETIO_OPEN,      len[ 2 ], flags[ 2 ], def_ext[], 0, ... } + filename[ len ] -> { NETIO_OPEN, file_no[2], ... } */
+/* { NETIO_OPEN,      len[ 2 ], flags[ 2 ], def_ext[], 0, ... } + filename[ len ] -> { NETIO_OPEN, file_no[ 2 ], ... } */
+/* { NETIO_OPEN2,     len[ 2 ], flags[ 4 ], def_ext[], 0, ... } + filename[ len ] -> { NETIO_OPEN, file_no[ 2 ], ... } */
 /* { NETIO_READ,      file_no[2], size[ 4 ], timeout[ 8 ], ... } -> { NETIO_READ, read[ 4 ], err[ 4 ], ... } + data[ read ] */
 /* { NETIO_WRITE,     file_no[2], size[ 4 ], timeout[ 8 ], ... } + data[ size ] -> { NETIO_WRITE, written[ 4 ], err[ 4 ], ... } */
 /* { NETIO_READAT,    file_no[2], size[ 4 ], offset[ 8 ], ... } -> { NETIO_READAT, read[ 4 ], err[ 4 ], ... } + data[ read ] */

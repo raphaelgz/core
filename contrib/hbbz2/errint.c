@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- * SORT RDD module
+ * BZIP2 functions wrapper
  *
- * Copyright 1999 Bruno Cantero <bruno@issnet.net>
- * www - http://harbour-project.org
+ * Copyright 2016 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -46,44 +44,19 @@
  *
  */
 
-#ifndef HB_DBSORT_H_
-#define HB_DBSORT_H_
+#include "hbapi.h"
+#include "hbapierr.h"
 
-#include "hbrdddbf.h"
+/* Required if bz2 lib was built with BZ_NO_STDIO [vszakats] */
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern HB_EXPORT void bz_internal_error( int errcode );
+#ifdef __cplusplus
+}
+#endif
 
-HB_EXTERN_BEGIN
-
-/*
- *  DBQUICKSORT
- *  -----------
- *  The Quick Sort Item Structure
- */
-
-typedef struct _DBQUICKSORT
+void bz_internal_error( int errcode )
 {
-   PHB_FILE pFile;
-   char szTempName[ HB_PATH_MAX ];
-   HB_BYTE * pBuffer;
-   HB_BYTE * pSwapBufferA;
-   HB_BYTE * pSwapBufferB;
-   HB_BYTE * pCmpBufferA;
-   HB_BYTE * pCmpBufferB;
-   HB_USHORT uiRecordLen;
-   HB_USHORT uiMaxRecords;
-   LPDBSORTINFO pSortInfo;
-} DBQUICKSORT;
-
-typedef DBQUICKSORT * LPDBQUICKSORT;
-
-/*
- *  PROTOTYPES
- *  ----------
- */
-extern HB_BOOL hb_dbQSortInit( LPDBQUICKSORT pQuickSort, LPDBSORTINFO pSortInfo, HB_USHORT uiRecordLen );
-extern void    hb_dbQSortExit( LPDBQUICKSORT pQuickSort );
-extern HB_BOOL hb_dbQSortAdvance( LPDBQUICKSORT pQuickSort, HB_USHORT uiCount );
-extern void    hb_dbQSortComplete( LPDBQUICKSORT pQuickSort );
-
-HB_EXTERN_END
-
-#endif /* HB_DBSORT_H_ */
+   hb_errInternal( ( HB_ERRCODE ) errcode, "libbzip2", NULL, NULL );
+}

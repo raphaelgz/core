@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * High-level portable file functions.
  *
  * Copyright 2009-2011 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -118,9 +116,7 @@ FUNCTION hb_PathJoin( cPathA, cPathR )
       RETURN cPathR
    ENDIF
 
-   hb_FNameSplit( cPathA, @cDirA )
-
-   IF Empty( cDirA )
+   IF Empty( cDirA := hb_FNameDir( cPathA ) )
       RETURN cPathR
    ENDIF
 
@@ -141,8 +137,6 @@ FUNCTION hb_PathRelativize( cPathBase, cPathTarget, lForceRelative )
    IF ! HB_ISSTRING( cPathBase ) .OR. ! HB_ISSTRING( cPathTarget )
       RETURN ""
    ENDIF
-
-   hb_default( @lForceRelative, .T. )
 
    cPathBase   := hb_PathJoin( hb_DirBase(), hb_DirSepAdd( cPathBase ) )
    cPathTarget := hb_PathJoin( hb_DirBase(), cPathTarget )
@@ -181,7 +175,8 @@ FUNCTION hb_PathRelativize( cPathBase, cPathTarget, lForceRelative )
    ENDIF
 
    /* Force to return relative paths even when base is different. */
-   IF lForceRelative .AND. hb_DirExists( cPathBase + ( cTestTarget := s_FN_FromArray( aPathTarget, tmp, cTargetFileName, Replicate( ".." + hb_ps(), Len( aPathBase ) - tmp ) ) ) )
+   IF hb_defaultValue( lForceRelative, .T. ) .AND. ;
+      hb_DirExists( cPathBase + ( cTestTarget := s_FN_FromArray( aPathTarget, tmp, cTargetFileName, Replicate( ".." + hb_ps(), Len( aPathBase ) - tmp ) ) ) )
       RETURN cTestTarget
    ENDIF
 

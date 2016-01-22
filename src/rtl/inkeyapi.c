@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * Inkey GT API
  *
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -48,7 +46,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 2002 Walter Negro <anegro@overnet.com.ar>
  *    hb_inkeySetLast()
@@ -153,7 +150,7 @@ static const HB_KEY_VALUE s_transKeyStd[] = {
    { '=',       K_ALT_EQUALS,    0,               0 },   /*  61 */
    { '>',       0,               0,               0 },   /*  62 */
    { '?',       0,               K_CTRL_QUESTION, 0 },   /*  63 */
-   { '@',       0,               0,               0 },   /*  64 */
+   { '@',       0,               259,             0 },   /*  64 */
    { 'A',       K_ALT_A,         K_CTRL_A,        0 },   /*  65 */
    { 'B',       K_ALT_B,         K_CTRL_B,        0 },   /*  66 */
    { 'C',       K_ALT_C,         K_CTRL_C,        0 },   /*  67 */
@@ -353,30 +350,6 @@ void hb_inkeyReset( void )
    }
 }
 
-HB_SIZE hb_inkeyKeyString( int iKey, char * buffer, HB_SIZE nSize )
-{
-   HB_SIZE nLen = 0;
-
-   HB_TRACE( HB_TR_DEBUG, ( "hb_inkeyKeyString(%d,%p, %" HB_PFS "u)", iKey, buffer, nSize ) );
-
-   if( HB_INKEY_ISUNICODE( iKey ) )
-   {
-      nLen = hb_cdpTextPutU16( hb_vmCDP(), buffer, nSize, HB_INKEY_VALUE( iKey ) );
-   }
-   else
-   {
-      if( HB_INKEY_ISCHAR( iKey ) )
-         iKey = HB_INKEY_VALUE( iKey );
-      if( iKey >= 32 && iKey <= 255 && iKey != 127 )
-      {
-         PHB_CODEPAGE cdp = hb_vmCDP();
-         nLen = hb_cdpTextPutU16( cdp, buffer, nSize,
-                                  hb_cdpGetU16( cdp, ( HB_UCHAR ) iKey ) );
-      }
-   }
-   return nLen;
-}
-
 static int s_inkeyTransChar( int iKey, int iFlags, const HB_KEY_VALUE * pKeyVal )
 {
    if( ( iFlags & HB_KF_KEYPAD ) != 0 &&
@@ -425,6 +398,41 @@ static int s_inkeyTransChar( int iKey, int iFlags, const HB_KEY_VALUE * pKeyVal 
       return pKeyVal->shift_key;
    else
       return pKeyVal->key;
+}
+
+HB_SIZE hb_inkeyKeyString( int iKey, char * buffer, HB_SIZE nSize )
+{
+   HB_SIZE nLen = 0;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_inkeyKeyString(%d,%p, %" HB_PFS "u)", iKey, buffer, nSize ) );
+
+   if( HB_INKEY_ISUNICODE( iKey ) )
+   {
+      nLen = hb_cdpTextPutU16( hb_vmCDP(), buffer, nSize, HB_INKEY_VALUE( iKey ) );
+   }
+   else
+   {
+      if( HB_INKEY_ISCHAR( iKey ) )
+         iKey = HB_INKEY_VALUE( iKey );
+      else if( HB_INKEY_ISKEY( iKey ) )
+      {
+         int iFlags = HB_INKEY_FLAGS( iKey );
+
+         iKey = HB_INKEY_VALUE( iKey );
+
+         if( iKey > 0 && iKey <= ( int ) HB_SIZEOFARRAY( s_transKeyFun ) )
+            iKey = s_inkeyTransChar( iKey, iFlags, &s_transKeyFun[ iKey - 1 ] );
+         else if( iKey >= 32 && iKey <= 127 )
+            iKey = s_inkeyTransChar( iKey, iFlags, &s_transKeyStd[ iKey - 32 ] );
+      }
+      if( iKey >= 32 && iKey <= 255 && iKey != 127 )
+      {
+         PHB_CODEPAGE cdp = hb_vmCDP();
+         nLen = hb_cdpTextPutU16( cdp, buffer, nSize,
+                                  hb_cdpGetU16( cdp, ( HB_UCHAR ) iKey ) );
+      }
+   }
+   return nLen;
 }
 
 int hb_inkeyKeyStd( int iKey )
@@ -494,6 +502,22 @@ int hb_inkeyKeyVal( int iKey )
 
    if( HB_INKEY_ISEXT( iKey ) && ! HB_INKEY_ISMOUSEPOS( iKey ) )
       iValue = HB_INKEY_VALUE( iKey );
+
+   return iValue;
+}
+
+int hb_inkeyKeyExt( int iKey )
+{
+   int iValue = 0;
+
+   HB_TRACE( HB_TR_DEBUG, ( "hb_inkeyKeyVal(%d)", iKey ) );
+
+   if( HB_INKEY_ISKEY( iKey ) )
+   {
+      iValue = HB_INKEY_VALUE( iKey );
+      if( iValue < 1 || iValue > ( int ) HB_SIZEOFARRAY( s_transKeyFun ) )
+         iValue = 0;
+   }
 
    return iValue;
 }

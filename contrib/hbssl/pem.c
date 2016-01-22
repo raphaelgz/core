@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * OpenSSL API (PEM) - Harbour interface.
  *
  * Copyright 2009 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -54,7 +52,6 @@
 #include "hbssl.h"
 
 /* Callback */
-/* -------- */
 
 static int hb_ssl_pem_password_cb( char * buf, int size, int rwflag, void * userdata )
 {
@@ -97,8 +94,8 @@ static void hb_PEM_read_bio( PEM_READ_BIO * func )
 {
    BIO * bio;
 
-   if( HB_ISPOINTER( 1 ) )
-      bio = ( BIO * ) hb_parptr( 1 );
+   if( hb_BIO_is( 1 ) )
+      bio = hb_BIO_par( 1 );
    else if( HB_ISCHAR( 1 ) )
       bio = BIO_new_file( hb_parc( 1 ), "r" );
    else if( HB_ISNUM( 1 ) )
@@ -108,7 +105,7 @@ static void hb_PEM_read_bio( PEM_READ_BIO * func )
 
    if( bio )
    {
-      PHB_ITEM pPassCallback = hb_param( 2, HB_IT_BLOCK | HB_IT_SYMBOL );
+      PHB_ITEM pPassCallback = hb_param( 2, HB_IT_EVALITEM );
 
       if( pPassCallback )
       {
@@ -120,7 +117,7 @@ static void hb_PEM_read_bio( PEM_READ_BIO * func )
          hb_retptr( ( *func )( bio, NULL, NULL, ( void * ) hb_parc( 2 ) ) );
       }
 
-      if( ! HB_ISPOINTER( 1 ) )
+      if( ! hb_BIO_is( 1 ) )
          BIO_free( bio );
    }
    else

@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * TMENUSYS class
  *
  * Copyright 2002 Larry Sevilla <lsevilla@nddc.edu.ph>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -147,10 +145,10 @@ METHOD Modal( nSelection, nMsgRow, nMsgLeft, nMsgRight, cMsgColor, GetList ) CLA
 
    oTopMenu:select( nSelection )
 
-   IF !( oTopMenu:ClassName() == "TOPBARMENU" ) .AND. ! oTopMenu:isOpen
-      oTopMenu:open()
-   ELSE
+   IF oTopMenu:ClassName() == "TOPBARMENU" .OR. oTopMenu:isOpen
       oTopMenu:display()
+   ELSE
+      oTopMenu:open()
    ENDIF
 
    IF nSelection <= 0
@@ -617,7 +615,7 @@ METHOD ShowMsg( lMode ) CLASS HBMenuSys
    LOCAL nCurrent
    LOCAL cMsg
 
-   IF HB_ISLOGICAL( ::lOldMsgFlag ) .AND. ::lOldMsgFlag
+   IF hb_defaultValue( ::lOldMsgFlag, .F. )
       RestScreen( ::nMsgRow, ::nMsgLeft, ::nMsgRow, ::nMsgRight, ::cMsgSaveS )
    ENDIF
 

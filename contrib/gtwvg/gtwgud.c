@@ -1,5 +1,4 @@
 /*
- * Harbour Project source code:
  * Video subsystem for Windows using GUI windows instead of Console
  *     Copyright 2003 Peter Rees <peter@rees.co.nz>
  *                    Rees Software & Systems Ltd
@@ -15,15 +14,12 @@
  *    Adopted to new GT API
  *
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  *
  * Copyright 1999 David G. Holm <dholm@jsd-llc.com>
  *    hb_gt_Tone()
  *
  * See COPYING.txt for licensing terms.
- *
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +34,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.   If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/ ).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/ ).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -1650,6 +1646,8 @@ static HB_BOOL hb_gt_wvt_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
       case HB_GTI_SETPOS_ROWCOL:
          if( pWVT->hWnd )
          {
+            int i1 = -1;
+            int i2 = -1;
             RECT rect = { 0, 0, 0, 0 };
             GetWindowRect( pWVT->hWnd, &rect );
 
@@ -1670,17 +1668,30 @@ static HB_BOOL hb_gt_wvt_Info( PHB_GT pGT, int iType, PHB_GT_INFO pInfo )
             if( ( hb_itemType( pInfo->pNewVal ) & HB_IT_NUMERIC ) &&
                               ( hb_itemType( pInfo->pNewVal2 ) & HB_IT_NUMERIC ) )
             {
+               i1 = hb_itemGetNI( pInfo->pNewVal );
+               i2 = hb_itemGetNI( pInfo->pNewVal2 );
+            }
+            else if( hb_itemType( pInfo->pNewVal ) & HB_IT_ARRAY )
+            {
+               i1 = hb_arrayGetNI( pInfo->pNewVal, 1 );
+               i2 = hb_arrayGetNI( pInfo->pNewVal, 2 );
+            }
+            else
+               break;
+
+            if( i1 > -1 && i2 > -1 )
+            {
                int x, y;
 
                if( iType == HB_GTI_SETPOS_ROWCOL )
                {
-                  y = hb_itemGetNI( pInfo->pNewVal ) * pWVT->fontHeight;
-                  x = hb_itemGetNI( pInfo->pNewVal2 ) * pWVT->fontWidth;
+                  y = i1 * pWVT->fontHeight;
+                  x = i2 * pWVT->fontWidth;
                }
                else
                {
-                  x = hb_itemGetNI( pInfo->pNewVal );
-                  y = hb_itemGetNI( pInfo->pNewVal2 );
+                  x = i1;
+                  y = i2;
                }
                hb_retl( SetWindowPos( pWVT->hWnd, NULL,
                                       x,

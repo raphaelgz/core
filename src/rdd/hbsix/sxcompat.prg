@@ -1,6 +1,5 @@
 /*
- * Harbour Project source code:
- *    SIX compatible functions:
+ * SIX compatible functions:
  *          sxChar()
  *          sxNum()
  *          sxDate()
@@ -34,7 +33,6 @@
  *          sx_VFGet()
  *
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +47,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -78,10 +76,12 @@
  */
 
 #include "dbinfo.ch"
+#include "dbstruct.ch"
+#include "fileio.ch"
 #include "ord.ch"
 #include "hbsxdef.ch"
 
-FUNCTION sxChar( nLen, xKeyVal )
+FUNCTION sxChar( nLen, /* @ */ xKeyVal )
 
    SWITCH ValType( xKeyVal )
    CASE "C"
@@ -93,6 +93,9 @@ FUNCTION sxChar( nLen, xKeyVal )
    CASE "D"
       xKeyVal := DToS( xKeyVal )
       EXIT
+   CASE "T"
+      xKeyVal := hb_TToS( xKeyVal )
+      EXIT
    CASE "L"
       xKeyVal := iif( xKeyVal, "T", "F" )
       EXIT
@@ -101,9 +104,13 @@ FUNCTION sxChar( nLen, xKeyVal )
       EXIT
    ENDSWITCH
 
-   RETURN iif( HB_ISNUMERIC( nLen ), PadR( LTrim( xKeyVal ), nLen ), xKeyVal )
+   IF HB_ISNUMERIC( nLen )
+      xKeyVal := PadR( LTrim( xKeyVal ), nLen )
+   ENDIF
 
-FUNCTION sxNum( xKeyVal )
+   RETURN xKeyVal
+
+FUNCTION sxNum( /* @ */ xKeyVal )
 
    SWITCH ValType( xKeyVal )
    CASE "N"
@@ -112,6 +119,7 @@ FUNCTION sxNum( xKeyVal )
    CASE "M"
       xKeyVal := Val( xKeyVal )
       EXIT
+   CASE "T"
    CASE "D"
       xKeyVal := xKeyVal - hb_SToD()
       EXIT
@@ -125,10 +133,13 @@ FUNCTION sxNum( xKeyVal )
 
    RETURN xKeyVal
 
-FUNCTION sxDate( xKeyVal )
+FUNCTION sxDate( /* @ */ xKeyVal )
 
    SWITCH ValType( xKeyVal )
    CASE "D"
+      EXIT
+   CASE "T"
+      xKeyVal := hb_TToD( xKeyVal )
       EXIT
    CASE "C"
    CASE "M"
@@ -144,7 +155,7 @@ FUNCTION sxDate( xKeyVal )
 
    RETURN xKeyVal
 
-FUNCTION sxLog( xKeyVal )
+FUNCTION sxLog( /* @ */ xKeyVal )
 
    SWITCH ValType( xKeyVal )
    CASE "L"
@@ -338,7 +349,7 @@ FUNCTION sx_KillTag( xTag, xIndex )
          ENDIF
          IF ! Empty( cIndex )
             IF ordBagClear( cIndex )
-               lRet := FErase( cIndex ) != -1
+               lRet := FErase( cIndex ) != F_ERROR
             ENDIF
          ENDIF
       ENDIF
@@ -480,18 +491,18 @@ FUNCTION sx_dbCreate( cFileName, aStruct, cRDD )
 
    aDbStruct := AClone( aStruct )
    FOR EACH aField IN aDbStruct
-      SWITCH aField[ 2 ]
+      SWITCH aField[ DBS_TYPE ]
       CASE "V"
-         aField[ 3 ] += 6
+         aField[ DBS_LEN ] += 6
          EXIT
       CASE "D"
-         IF aField[ 3 ] == 3
-            aField[ 2 ] := "V"
+         IF aField[ DBS_LEN ] == 3
+            aField[ DBS_TYPE ] := "V"
          ENDIF
          EXIT
       CASE "I"
-         IF aField[ 3 ] == 4
-            aField[ 2 ] := "V"
+         IF aField[ DBS_LEN ] == 4
+            aField[ DBS_TYPE ] := "V"
          ENDIF
          EXIT
       ENDSWITCH

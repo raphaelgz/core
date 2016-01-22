@@ -1,11 +1,9 @@
 /*
- * Harbour Project source code:
- *    Wrapper functions for minizip library
+ * Wrapper functions for minizip library
  *    Some higher level zip archive functions
  *
  * Copyright 2008 Mindaugas Kavaliauskas <dbtopas.at.dbtopas.lt>
  * Copyright 2011-2013 Viktor Szakats (vszakats.net/harbour) (codepage/unicode)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -97,7 +95,7 @@
    #if defined( __USE_LARGEFILE64 )
       /*
        * The macro: __USE_LARGEFILE64 is set when _LARGEFILE64_SOURCE is
-       * define and efectively enables lseek64/flock64/ftruncate64 functions
+       * defined and effectively enables lseek64/flock64/ftruncate64 functions
        * on 32bit machines.
        */
       #define HB_USE_LARGEFILE64
@@ -689,7 +687,7 @@ static HB_BOOL hb_zipGetFileInfoFromHandle( PHB_FILE pFile, HB_U32 * pulCRC, HB_
       do
       {
          nRead = hb_fileRead( pFile, pString, HB_Z_IOBUF_SIZE, -1 );
-         if( nRead > 0 )
+         if( nRead > 0 && nRead != ( HB_SIZE ) FS_ERROR )
          {
             ulCRC = crc32( ulCRC, pString, ( uInt ) nRead );
             if( fText )
@@ -1043,7 +1041,8 @@ static int hb_zipStoreFile( zipFile hZip, int iParamFileName, int iParamZipName,
          if( iResult == 0 )
          {
             pString = ( char * ) hb_xgrab( HB_Z_IOBUF_SIZE );
-            while( ( nLen = hb_fileRead( pFile, pString, HB_Z_IOBUF_SIZE, -1 ) ) > 0 )
+            while( ( nLen = hb_fileRead( pFile, pString, HB_Z_IOBUF_SIZE, -1 ) ) > 0 &&
+                   nLen != ( HB_SIZE ) FS_ERROR )
                zipWriteInFileInZip( hZip, pString, ( unsigned ) nLen );
 
             hb_xfree( pString );
@@ -1149,7 +1148,8 @@ static int hb_zipStoreFileHandle( zipFile hZip, PHB_FILE pFile, int iParamZipNam
    {
       char * pString = ( char * ) hb_xgrab( HB_Z_IOBUF_SIZE );
       hb_fileSeek( pFile, 0, FS_SET );
-      while( ( nLen = hb_fileRead( pFile, pString, HB_Z_IOBUF_SIZE, -1 ) ) > 0 )
+      while( ( nLen = hb_fileRead( pFile, pString, HB_Z_IOBUF_SIZE, -1 ) ) > 0 &&
+             nLen != ( HB_SIZE ) FS_ERROR )
          zipWriteInFileInZip( hZip, pString, ( unsigned ) nLen );
       hb_xfree( pString );
 
@@ -1266,7 +1266,8 @@ static int hb_unzipExtractCurrentFile( unzFile hUnzip, const char * szFileName, 
          pString = ( char * ) hb_xgrab( HB_Z_IOBUF_SIZE );
 
          while( ( iResult = unzReadCurrentFile( hUnzip, pString, HB_Z_IOBUF_SIZE ) ) > 0 )
-            hb_fileWrite( pFile, pString, ( HB_SIZE ) iResult, -1 );
+            if( hb_fileWrite( pFile, pString, ( HB_SIZE ) iResult, -1 ) != ( HB_SIZE ) iResult )
+               break;
 
          hb_xfree( pString );
 
@@ -1389,6 +1390,7 @@ static int hb_unzipExtractCurrentFile( unzFile hUnzip, const char * szFileName, 
       st.tm_mday = ufi.tmu_date.tm_mday;
       st.tm_mon  = ufi.tmu_date.tm_mon;
       st.tm_year = ufi.tmu_date.tm_year - 1900;
+      st.tm_isdst = -1;
 
       utim.actime = utim.modtime = mktime( &st );
       ( void ) utime( szNameOS, &utim );
@@ -1457,7 +1459,8 @@ static int hb_unzipExtractCurrentFileToHandle( unzFile hUnzip, PHB_FILE pFile, c
       char * pString = ( char * ) hb_xgrab( HB_Z_IOBUF_SIZE );
 
       while( ( iResult = unzReadCurrentFile( hUnzip, pString, HB_Z_IOBUF_SIZE ) ) > 0 )
-         hb_fileWrite( pFile, pString, ( HB_SIZE ) iResult, -1 );
+         if( hb_fileWrite( pFile, pString, ( HB_SIZE ) iResult, -1 ) != ( HB_SIZE ) iResult )
+            break;
 
       hb_xfree( pString );
 

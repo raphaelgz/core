@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
  * hb_rand32() function
  *
  * Copyright 2011 Viktor Szakats (vszakats.net/harbour)
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -68,7 +66,7 @@ HB_FUNC( HB_RANDSTR )
    {
       void * data = hb_xgrab( len + 1 );
       hb_random_block( data, len );
-      hb_retclen( ( char * ) data, len );
+      hb_retclen_buffer( ( char * ) data, len );
    }
    else
       hb_retc_null();

@@ -1,11 +1,9 @@
 /*
- * Harbour Project source code:
  * Header file for Class commands
  *
  * Copyright 1999 Antonio Linares <alinares@fivetechsoft.com>
  * Copyright 2006 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
  *    most of rules rewritten
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -50,7 +48,6 @@
 
 /*
  * The following parts are Copyright of the individual authors.
- * www - http://harbour-project.org
  *
  * Copyright 2000 ( ->07/2000 ) JF. Lefebvre <jfl@mafact.com> & RA. Cuylen <rac@mafact.com>
  *    Support for Class(y), TopClass and Visual Object compatibility
@@ -525,7 +522,7 @@ DECLARE HBClass ;
       SHARED clause and always create shared class variables */
    #xcommand CLASSDATA <DataNames,...> [ AS <type> ] [ INIT <uValue> ] [<export: EXPORTED, VISIBLE>] [<protect: PROTECTED>] [<hidde: HIDDEN>] [<ro: READONLY, RO>] [<share: SHARED>] [<persistent: PERSISTENT, PROPERTY>] [<sync: SYNC>] => ;
       _HB_MEMBER {[ AS <type>] <DataNames> } ;;
-   oClass:AddMultiClsData( <(type)>, <uValue>, __HB_CLS_SCOPE( <.export.>, <.protect.>, <.hidde.> ) + iif( <.ro.>, HB_OO_CLSTP_READONLY, 0 ) + iif( /* <.share.> */ .T., HB_OO_CLSTP_SHARED, 0 ) + iif( <.persistent.>, HB_OO_CLSTP_PERSIST, 0 ) + iif( <.sync.>, HB_OO_CLSTP_SYNC, 0 ), {<(DataNames)>}, __HB_CLS_NOINI )
+      oClass:AddMultiClsData( <(type)>, <uValue>, __HB_CLS_SCOPE( <.export.>, <.protect.>, <.hidde.> ) + iif( <.ro.>, HB_OO_CLSTP_READONLY, 0 ) + iif( /* <.share.> */ .T., HB_OO_CLSTP_SHARED, 0 ) + iif( <.persistent.>, HB_OO_CLSTP_PERSIST, 0 ) + iif( <.sync.>, HB_OO_CLSTP_SYNC, 0 ), {<(DataNames)>}, __HB_CLS_NOINI )
 
 #endif /* HB_CLS_FWO */
 
@@ -562,8 +559,9 @@ DECLARE HBClass ;
    #xcommand SYNC METHOD <!MethodName1!>[([<params,...>])], <!MethodName2!>[([<params,...>])] [, <!MethodNameN!>[([<params,...>])]] => ;
              SYNC METHOD <MethodName1> [ ; SYNC METHOD <MethodName2> ] [ ; SYNC METHOD <MethodNameN> ]
 
-   #xcommand METHOD <!className!>:<!methodName!>[([<params,...>])] => ;
-             METHOD <methodName>( <params> ) CLASS <className>
+   /* FUNCTION/PROCEDURE is a Harbour extension */
+   #xcommand METHOD [<type: FUNCTION, PROCEDURE>] <!className!>:<!methodName!>[([<params,...>])] => ;
+             METHOD <type> <methodName>( <params> ) CLASS <className>
 
 #endif /* HB_CLS_XPP */
 

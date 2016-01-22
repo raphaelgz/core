@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    SIX compatible library PP rules
+ * SIX compatible library PP rules
  *
  * Copyright 2007 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -76,8 +74,8 @@
             [<ex: EXCLUSIVE>] [<sh: SHARED>] [<ro: READONLY>] ;
             [CODEPAGE <cp>] [INDEX <(index1)> [, <(indexN)>]] ;
             [TRIGGER <trig>] [PASSWORD <pass>] => ;
-         [sx_SetTrigger( TRIGGER_PENDING, <trig>, <rdd> ); ] <-trig-> ;
-         [sx_SetPass( <pass>, 1, <rdd> ); ] <-pass-> ;
+         [sx_SetTrigger( TRIGGER_PENDING, <trig>, <rdd> );] <-trig-> ;
+         [sx_SetPass( <pass>, 1, <rdd> );] <-pass-> ;
          dbUseArea( <.nw.>, <rdd>, <(db)>, <(a)>, ;
                     iif( <.sh.> .OR. <.ex.>, ! <.ex.>, NIL ), <.ro.> [, <cp>] ) ;
          [; dbSetIndex( <(index1)> )] ;
@@ -89,11 +87,11 @@
  */
 #command SORT [TO <(f)>] [ON <fields,...>] ;
               [FOR <for>] [WHILE <while>] [NEXT <next>] ;
-              [RECORD <rec>] [<rest:REST>] [<all:ALL>] ;
-              [<cur: USECURRENT>] [NOOPTIMIZE] => ;
+              [RECORD <rec>] [<rest:REST>] [ALL] [VIA <rdd>] ;
+              [CODEPAGE <cp>] [<cur: USECURRENT>] [NOOPTIMIZE] => ;
          sx_SortOption(<.cur.>); ;
          __dbSort( <(f)>, { <(fields)> }, ;
-                   <{for}>, <{while}>, <next>, <rec>, <.rest.> )
+                   <{for}>, <{while}>, <next>, <rec>, <.rest.>, <rdd>,, <cp> )
 
 
 /*
@@ -117,7 +115,7 @@
 #command REINDEX OPTION <eval> [STEP <step>]    => ;
          REINDEX EVAL <eval> [EVERY <step>]
 #command DELETE TAG <(tag1)> [OF <(bag1)>] [, <(tagN)> [OF <(bagN)>]] => ;
-         ordDestroy( <(tag1)>, <(bag1)> )[ ; ordDestroy( <(tagN)>, <(bagN)> ) ]
+         ordDestroy( <(tag1)>, <(bag1)> )[ ; ordDestroy( <(tagN)>, <(bagN)> )]
 #command DELETE TAG ALL [OF <(bag)>]            => sx_KillTag( .T., <(bag)> )
 
 

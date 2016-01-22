@@ -1,9 +1,7 @@
 /*
- * Harbour Project source code:
- *    USRRDD
+ * USRRDD
  *
  * Copyright 2006 Przemyslaw Czerpak <druzus / at / priv.onet.pl>
- * www - http://harbour-project.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -202,6 +200,8 @@
 /* Flags for DBTRANSINFO */
 #define DBTF_MATCH            0x0001
 #define DBTF_PUTREC           0x0002
+#define DBTF_CPYCTR           0x0004
+#define DBTF_RECALL           0x0008
 
 /* Codes for Locking methods */
 #define DBLM_EXCLUSIVE        1

@@ -1,5 +1,4 @@
 /*
- * Harbour Project source code:
  *
  * Copyright 2009-2012 Pritpal Bedi <bedipritpal@hotmail.com>
  * Based on:
@@ -17,8 +16,6 @@
  *
  * See COPYING.txt for licensing terms.
  *
- * www - http://harbour-project.org
- *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2, or (at your option )
@@ -32,7 +29,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.txt.   If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA (or visit the web site http://www.gnu.org/ ).
+ * Boston, MA 02111-1307 USA (or visit the web site https://www.gnu.org/ ).
  *
  * As a special exception, the Harbour Project gives permission for
  * additional uses of the text contained in its release of Harbour.
@@ -1534,8 +1531,16 @@ static void hb_wvg_RenderPicture( PHB_GTWVT pWVT, PHB_GOBJS gObj, int iLeft, int
 
       if( gObj->iData == 1 )
       {
-         iHt = ( int ) ( ( float )  wd * lHeight / lWidth );
-         iWd = ( int ) ( ( float ) iHt * lWidth / lHeight );
+         if( lHeight > lWidth )
+         {
+            iWd = min( wd, ( int ) ( ( float )  ht * lWidth / lHeight ) );
+            iHt = ( int ) ( ( float ) iWd * lHeight / lWidth );
+         }
+         else
+         {
+            iHt = min( ht, ( int ) ( ( float )  wd * lHeight / lWidth ) );
+            iWd = ( int ) ( ( float ) iHt * lWidth / lHeight );
+         }
          x  += abs( ( iWd - wd ) / 2 );
          y  += abs( ( iHt - ht ) / 2 );
          wd  = iWd;
